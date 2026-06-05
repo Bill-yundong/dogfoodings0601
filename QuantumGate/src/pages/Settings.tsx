@@ -1,36 +1,31 @@
-import { Component, createSignal, createEffect } from 'solid-js';
+import { Component, createEffect, createSignal } from 'solid-js';
 import { GlassCard } from '@/components/GlassCard';
 import { StatusIndicator } from '@/components/StatusIndicator';
 import { protocolSync } from '@/utils/protocolSync';
 import { clearOldData } from '@/utils/db';
+import { appState, actions } from '@/store/appStore';
 
 export const Settings: Component = () => {
-  const [hardwareEndpoint, setHardwareEndpoint] = createSignal('ws://localhost:8080/quantum');
-  const [autoSync, setAutoSync] = createSignal(true);
-  const [syncInterval, setSyncInterval] = createSignal(5000);
-  const [mockLatency, setMockLatency] = createSignal(150);
-  const [mockErrorRate, setMockErrorRate] = createSignal(0.05);
-  const [connectionStatus, setConnectionStatus] = createSignal<'connected' | 'disconnected' | 'connecting'>('disconnected');
   const [isClearing, setIsClearing] = createSignal(false);
 
   createEffect(() => {
-    protocolSync.setMockLatency(mockLatency());
-    protocolSync.setMockErrorRate(mockErrorRate());
+    protocolSync.setMockLatency(appState.settings.mockLatency);
+    protocolSync.setMockErrorRate(appState.settings.mockErrorRate);
   });
 
   const connect = async () => {
-    setConnectionStatus('connecting');
+    actions.updateSettings({ connectionStatus: 'connecting' });
     try {
-      const success = await protocolSync.connect(hardwareEndpoint());
-      setConnectionStatus(success ? 'connected' : 'disconnected');
+      const success = await protocolSync.connect(appState.settings.hardwareEndpoint);
+      actions.updateSettings({ connectionStatus: success ? 'connected' : 'disconnected' });
     } catch {
-      setConnectionStatus('disconnected');
+      actions.updateSettings({ connectionStatus: 'disconnected' });
     }
   };
 
   const disconnect = () => {
     protocolSync.disconnect();
-    setConnectionStatus('disconnected');
+    actions.updateSettings({ connectionStatus: 'disconnected' });
   };
 
   const clearDatabase = async () => {
@@ -50,31 +45,9 @@ export const Settings: Component = () => {
   };
 
   const saveSettings = () => {
-    localStorage.setItem('quantum-gate-settings', JSON.stringify({
-      hardwareEndpoint: hardwareEndpoint(),
-      autoSync: autoSync(),
-      syncInterval: syncInterval(),
-      mockLatency: mockLatency(),
-      mockErrorRate: mockErrorRate(),
-    }));
+    actions.saveSettings();
     alert('设置已保存');
   };
-
-  const loadSettings = () => {
-    const saved = localStorage.getItem('quantum-gate-settings');
-    if (saved) {
-      const settings = JSON.parse(saved);
-      setHardwareEndpoint(settings.hardwareEndpoint);
-      setAutoSync(settings.autoSync);
-      setSyncInterval(settings.syncInterval);
-      setMockLatency(settings.mockLatency);
-      setMockErrorRate(settings.mockErrorRate);
-    }
-  };
-
-  createEffect(() => {
-    loadSettings();
-  });
 
   return (
     <div class="p-6 space-y-6 overflow-y-auto h-full">
@@ -95,8 +68,8 @@ export const Settings: Component = () => {
               <label class="block text-sm text-white/70 font-mono mb-2">硬件端点地址</label>
               <input 
                 type="text" 
-                value={hardwareEndpoint()}
-                onInput={(e) => setHardwareEndpoint(e.currentTarget.value)}
+                value={appState.settings.hardwareEndpoint}
+                onInput={(e) => actions.updateSettings({ hardwareEndpoint: e.currentTarget.value })}
                 class="input-field font-mono"
                 placeholder="ws://localhost:8080/quantum"
               />
@@ -109,8 +82,8 @@ export const Settings: Component = () => {
               </div>
               <div class="flex items-center gap-3">
                 <StatusIndicator 
-                  status={connectionStatus() === 'connected' ? 'online' : connectionStatus() === 'connecting' ? 'syncing' : 'offline'}
-                  label={connectionStatus() === 'connected' ? '已连接' : connectionStatus() === 'connecting' ? '连接中' : '未连接'}
+                  status={appState.settings.connectionStatus === 'connected' ? 'online' : appState.settings.connectionStatus === 'connecting' ? 'syncing' : 'offline'}
+                  label={appState.settings.connectionStatus === 'connected' ? '已连接' : appState.settings.connectionStatus === 'connecting' ? '连接中' : '未连接'}
                 />
               </div>
             </div>
@@ -119,14 +92,14 @@ export const Settings: Component = () => {
               <button 
                 class="flex-1 btn-primary"
                 onClick={connect}
-                disabled={connectionStatus() !== 'disconnected'}
+                disabled={appState.settings.connectionStatus !== 'disconnected'}
               >
                 连接
               </button>
               <button 
                 class="flex-1 btn-secondary"
                 onClick={disconnect}
-                disabled={connectionStatus() === 'disconnected'}
+                disabled={appState.settings.connectionStatus === 'disconnected'}
               >
                 断开
               </button>
@@ -140,32 +113,32 @@ export const Settings: Component = () => {
                 </div>
                 <button 
                   class={`w-12 h-6 rounded-full transition-colors ${
-                    autoSync() ? 'bg-quantum-cyan' : 'bg-white/20'
+                    appState.settings.autoSync ? 'bg-quantum-cyan' : 'bg-white/20'
                   }`}
-                  onClick={() => setAutoSync(!autoSync())}
+                  onClick={() => actions.updateSettings({ autoSync: !appState.settings.autoSync })}
                 >
                   <div 
                     class={`w-5 h-5 rounded-full bg-white shadow-lg transform transition-transform ${
-                      autoSync() ? 'translate-x-6' : 'translate-x-0.5'
+                      appState.settings.autoSync ? 'translate-x-6' : 'translate-x-0.5'
                     }`}
                   />
                 </button>
               </div>
             </div>
 
-            {autoSync() && (
+            {appState.settings.autoSync && (
               <div>
                 <div class="flex justify-between mb-2">
                   <label class="text-sm text-white/70 font-mono">同步间隔</label>
-                  <span class="text-quantum-cyan font-mono">{syncInterval()} ms</span>
+                  <span class="text-quantum-cyan font-mono">{appState.settings.syncInterval} ms</span>
                 </div>
                 <input 
                   type="range" 
                   min="1000" 
                   max="30000" 
                   step="1000"
-                  value={syncInterval()}
-                  onInput={(e) => setSyncInterval(parseInt(e.currentTarget.value))}
+                  value={appState.settings.syncInterval}
+                  onInput={(e) => actions.updateSettings({ syncInterval: parseInt(e.currentTarget.value) })}
                   class="w-full accent-quantum-cyan"
                 />
               </div>
@@ -178,15 +151,15 @@ export const Settings: Component = () => {
             <div>
               <div class="flex justify-between mb-2">
                 <label class="text-sm text-white/70 font-mono">模拟延迟</label>
-                <span class="text-quantum-cyan font-mono">{mockLatency()} ms</span>
+                <span class="text-quantum-cyan font-mono">{appState.settings.mockLatency} ms</span>
               </div>
               <input 
                 type="range" 
                 min="0" 
                 max="1000" 
                 step="10"
-                value={mockLatency()}
-                onInput={(e) => setMockLatency(parseInt(e.currentTarget.value))}
+                value={appState.settings.mockLatency}
+                onInput={(e) => actions.updateSettings({ mockLatency: parseInt(e.currentTarget.value) })}
                 class="w-full accent-quantum-cyan"
               />
               <p class="text-xs text-white/40 font-mono mt-2">
@@ -197,15 +170,15 @@ export const Settings: Component = () => {
             <div>
               <div class="flex justify-between mb-2">
                 <label class="text-sm text-white/70 font-mono">模拟错误率</label>
-                <span class="text-quantum-cyan font-mono">{(mockErrorRate() * 100).toFixed(1)}%</span>
+                <span class="text-quantum-cyan font-mono">{(appState.settings.mockErrorRate * 100).toFixed(1)}%</span>
               </div>
               <input 
                 type="range" 
                 min="0" 
                 max="0.5" 
                 step="0.01"
-                value={mockErrorRate()}
-                onInput={(e) => setMockErrorRate(parseFloat(e.currentTarget.value))}
+                value={appState.settings.mockErrorRate}
+                onInput={(e) => actions.updateSettings({ mockErrorRate: parseFloat(e.currentTarget.value) })}
                 class="w-full accent-quantum-cyan"
               />
               <p class="text-xs text-white/40 font-mono mt-2">

@@ -1,9 +1,10 @@
-import { Component, createSignal, For } from 'solid-js';
+import { Component, For } from 'solid-js';
 import { GlassCard } from '@/components/GlassCard';
 import { ProgressRing } from '@/components/ProgressRing';
 import { MetricCard } from '@/components/MetricCard';
-import type { QuantumGateType, GateParams, FidelityResult } from '@/types';
+import type { QuantumGateType, GateParams } from '@/types';
 import { workerManager } from '@/utils/workerManager';
+import { appState, actions } from '@/store/appStore';
 
 const GATES: QuantumGateType[] = ['X', 'Y', 'Z', 'H', 'S', 'T', 'Rx', 'Ry', 'Rz', 'CNOT'];
 
@@ -21,46 +22,34 @@ const gateDescriptions: Record<QuantumGateType, string> = {
 };
 
 export const Fidelity: Component = () => {
-  const [selectedGate, setSelectedGate] = createSignal<QuantumGateType>('H');
-  const [iterations, setIterations] = createSignal(1000);
-  const [noiseLevel, setNoiseLevel] = createSignal(0.01);
-  const [decoherenceRate, setDecoherenceRate] = createSignal(0.001);
-  const [isCalculating, setIsCalculating] = createSignal(false);
-  const [progress, setProgress] = createSignal(0);
-  const [results, setResults] = createSignal<FidelityResult[]>([]);
-  const [currentResult, setCurrentResult] = createSignal<FidelityResult | null>(null);
-
   const calculateFidelity = async () => {
-    setIsCalculating(true);
-    setProgress(0);
+    actions.updateFidelity({ isCalculating: true, progress: 0 });
 
     const params: GateParams = {
       theta: Math.PI / 4,
-      noiseLevel: noiseLevel(),
-      decoherenceRate: decoherenceRate(),
+      noiseLevel: appState.fidelity.noiseLevel,
+      decoherenceRate: appState.fidelity.decoherenceRate,
     };
 
     try {
       const result = await workerManager.calculateFidelity(
-        selectedGate(),
+        appState.fidelity.selectedGate,
         params,
-        iterations(),
-        (p) => setProgress(p)
+        appState.fidelity.iterations,
+        (p) => actions.updateFidelity({ progress: p })
       );
 
-      setCurrentResult(result);
-      setResults(prev => [result, ...prev].slice(0, 10));
+      actions.addFidelityResult(result);
     } catch (error) {
       console.error('Fidelity calculation failed:', error);
     } finally {
-      setIsCalculating(false);
-      setProgress(100);
+      actions.updateFidelity({ isCalculating: false, progress: 100 });
     }
   };
 
   const avgFidelity = () => {
-    if (results().length === 0) return 0;
-    return results().reduce((sum, r) => sum + r.fidelity, 0) / results().length;
+    if (appState.fidelity.results.length === 0) return 0;
+    return appState.fidelity.results.reduce((sum, r) => sum + r.fidelity, 0) / appState.fidelity.results.length;
   };
 
   return (
@@ -73,16 +62,16 @@ export const Fidelity: Component = () => {
         <button 
           class="btn-primary"
           onClick={calculateFidelity}
-          disabled={isCalculating()}
+          disabled={appState.fidelity.isCalculating}
         >
-          {isCalculating() ? '计算中...' : '开始计算'}
+          {appState.fidelity.isCalculating ? '计算中...' : '开始计算'}
         </button>
       </div>
 
       <div class="grid grid-cols-4 gap-4">
         <MetricCard 
           title="当前保真度" 
-          value={currentResult() ? (currentResult()!.fidelity * 100).toFixed(2) : '--'}
+          value={appState.fidelity.currentResult ? (appState.fidelity.currentResult.fidelity * 100).toFixed(2) : '--'}
           unit="%"
           icon="🎯"
           color="green"
@@ -96,14 +85,14 @@ export const Fidelity: Component = () => {
         />
         <MetricCard 
           title="误差率" 
-          value={currentResult() ? (currentResult()!.errorRate * 100).toFixed(3) : '--'}
+          value={appState.fidelity.currentResult ? (appState.fidelity.currentResult.errorRate * 100).toFixed(3) : '--'}
           unit="%"
           icon="⚠️"
           color="orange"
         />
         <MetricCard 
           title="计算耗时" 
-          value={currentResult() ? currentResult()!.computeTime.toFixed(2) : '--'}
+          value={appState.fidelity.currentResult ? appState.fidelity.currentResult.computeTime.toFixed(2) : '--'}
           unit="ms"
           icon="⏱️"
           color="purple"
@@ -119,12 +108,12 @@ export const Fidelity: Component = () => {
                   <button
                     class={`
                       p-3 rounded-lg text-center transition-all duration-300 font-mono
-                      ${selectedGate() === gate 
+                      ${appState.fidelity.selectedGate === gate 
                         ? 'bg-quantum-cyan/20 text-quantum-cyan border border-quantum-cyan/50' 
                         : 'bg-white/5 text-white/70 border border-white/10 hover:border-white/20'
                       }
                     `}
-                    onClick={() => setSelectedGate(gate)}
+                    onClick={() => actions.updateFidelity({ selectedGate: gate })}
                   >
                     <div class="text-lg font-bold">{gate}</div>
                   </button>
@@ -133,7 +122,7 @@ export const Fidelity: Component = () => {
             </div>
             <div class="mt-4 p-3 bg-white/5 rounded-lg">
               <p class="text-xs text-white/50 font-mono">当前选择</p>
-              <p class="text-quantum-cyan font-mono">{selectedGate()} - {gateDescriptions[selectedGate()]}</p>
+              <p class="text-quantum-cyan font-mono">{appState.fidelity.selectedGate} - {gateDescriptions[appState.fidelity.selectedGate]}</p>
             </div>
           </GlassCard>
         </div>
@@ -144,15 +133,15 @@ export const Fidelity: Component = () => {
               <div>
                 <div class="flex justify-between mb-2">
                   <label class="text-sm text-white/70 font-mono">迭代次数</label>
-                  <span class="text-quantum-cyan font-mono">{iterations()}</span>
+                  <span class="text-quantum-cyan font-mono">{appState.fidelity.iterations}</span>
                 </div>
                 <input 
                   type="range" 
                   min="100" 
                   max="10000" 
                   step="100"
-                  value={iterations()}
-                  onInput={(e) => setIterations(parseInt(e.currentTarget.value))}
+                  value={appState.fidelity.iterations}
+                  onInput={(e) => actions.updateFidelity({ iterations: parseInt(e.currentTarget.value) })}
                   class="w-full accent-quantum-cyan"
                 />
               </div>
@@ -160,15 +149,15 @@ export const Fidelity: Component = () => {
               <div>
                 <div class="flex justify-between mb-2">
                   <label class="text-sm text-white/70 font-mono">噪声水平</label>
-                  <span class="text-quantum-cyan font-mono">{(noiseLevel() * 100).toFixed(1)}%</span>
+                  <span class="text-quantum-cyan font-mono">{(appState.fidelity.noiseLevel * 100).toFixed(1)}%</span>
                 </div>
                 <input 
                   type="range" 
                   min="0" 
                   max="0.1" 
                   step="0.001"
-                  value={noiseLevel()}
-                  onInput={(e) => setNoiseLevel(parseFloat(e.currentTarget.value))}
+                  value={appState.fidelity.noiseLevel}
+                  onInput={(e) => actions.updateFidelity({ noiseLevel: parseFloat(e.currentTarget.value) })}
                   class="w-full accent-quantum-cyan"
                 />
               </div>
@@ -176,15 +165,15 @@ export const Fidelity: Component = () => {
               <div>
                 <div class="flex justify-between mb-2">
                   <label class="text-sm text-white/70 font-mono">退相干率</label>
-                  <span class="text-quantum-cyan font-mono">{(decoherenceRate() * 1000).toFixed(1)}‰</span>
+                  <span class="text-quantum-cyan font-mono">{(appState.fidelity.decoherenceRate * 1000).toFixed(1)}‰</span>
                 </div>
                 <input 
                   type="range" 
                   min="0" 
                   max="0.01" 
                   step="0.0001"
-                  value={decoherenceRate()}
-                  onInput={(e) => setDecoherenceRate(parseFloat(e.currentTarget.value))}
+                  value={appState.fidelity.decoherenceRate}
+                  onInput={(e) => actions.updateFidelity({ decoherenceRate: parseFloat(e.currentTarget.value) })}
                   class="w-full accent-quantum-cyan"
                 />
               </div>
@@ -196,14 +185,14 @@ export const Fidelity: Component = () => {
           <GlassCard title="计算进度">
             <div class="flex items-center justify-center py-6">
               <ProgressRing 
-                progress={isCalculating() ? progress() : 100}
-                label={isCalculating() ? '计算中...' : '就绪'}
-                color={isCalculating() ? '#00D4FF' : '#39FF14'}
+                progress={appState.fidelity.isCalculating ? appState.fidelity.progress : 100}
+                label={appState.fidelity.isCalculating ? '计算中...' : '就绪'}
+                color={appState.fidelity.isCalculating ? '#00D4FF' : '#39FF14'}
               />
             </div>
             <div class="mt-4 space-y-2 text-center text-xs font-mono text-white/50">
               <p>Worker: {workerManager.getActiveTaskCount()} 活跃任务</p>
-              <p>已完成计算: {results().length} 次</p>
+              <p>已完成计算: {appState.fidelity.results.length} 次</p>
             </div>
           </GlassCard>
         </div>
@@ -223,7 +212,7 @@ export const Fidelity: Component = () => {
               </tr>
             </thead>
             <tbody>
-              <For each={results()}>
+              <For each={appState.fidelity.results}>
                 {(result) => (
                   <tr class="border-b border-white/5 hover:bg-white/5">
                     <td class="py-3 px-2 text-quantum-cyan">{result.gateType}</td>
@@ -235,7 +224,7 @@ export const Fidelity: Component = () => {
                   </tr>
                 )}
               </For>
-              {results().length === 0 && (
+              {appState.fidelity.results.length === 0 && (
                 <tr>
                   <td colspan="6" class="py-8 text-center text-white/30">
                     暂无计算记录，点击"开始计算"运行保真度计算
