@@ -1,0 +1,168 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background-color: #0A1628;
+    color: #E2E8F0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0F2137;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #64748B;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-midnight/80 backdrop-blur-md border border-slate-mid/30 rounded-xl;
+  }
+
+  .glass-card-hover {
+    @apply transition-all duration-300 hover:bg-midnight/90 hover:border-neon-purple/50 hover:shadow-lg hover:shadow-neon-purple/10;
+  }
+
+  .glow-border {
+    @apply border border-neon-purple/50 shadow-[0_0_15px_rgba(124,77,255,0.3)];
+  }
+
+  .status-pulse {
+    @apply relative;
+  }
+
+  .status-pulse::before {
+    content: '';
+    @apply absolute inset-0 rounded-full animate-ping opacity-75;
+  }
+
+  .tech-grid-bg {
+    background-image: 
+      linear-gradient(rgba(124, 77, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124, 77, 255, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .scan-line {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(0, 229, 255, 0.03) 50%,
+      transparent 100%
+    );
+    background-size: 100% 4px;
+    animation: scan 3s linear infinite;
+  }
+
+  .neon-text {
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor;
+  }
+
+  .data-card {
+    @apply relative overflow-hidden glass-card p-6;
+  }
+
+  .data-card::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-purple via-cyber-teal to-info-blue;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-neon-purple text-white rounded-lg font-medium transition-all duration-300 hover:bg-neon-purple/80 hover:shadow-lg hover:shadow-neon-purple/30 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-slate-dark border border-slate-mid text-slate-light rounded-lg font-medium transition-all duration-300 hover:bg-slate-mid/50 hover:text-white;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 bg-danger-red/20 border border-danger-red/50 text-danger-red rounded-lg font-medium transition-all duration-300 hover:bg-danger-red/30;
+  }
+
+  .btn-success {
+    @apply px-4 py-2 bg-success-green/20 border border-success-green/50 text-success-green rounded-lg font-medium transition-all duration-300 hover:bg-success-green/30;
+  }
+
+  .tag {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .tag-critical {
+    @apply bg-danger-red/20 text-danger-red border border-danger-red/30;
+  }
+
+  .tag-high {
+    @apply bg-alert-orange/20 text-alert-orange border border-alert-orange/30;
+  }
+
+  .tag-medium {
+    @apply bg-warning-amber/20 text-warning-amber border border-warning-amber/30;
+  }
+
+  .tag-low {
+    @apply bg-info-blue/20 text-info-blue border border-info-blue/30;
+  }
+
+  .tag-success {
+    @apply bg-success-green/20 text-success-green border border-success-green/30;
+  }
+
+  .tag-pending {
+    @apply bg-neon-purple/20 text-neon-purple border border-neon-purple/30;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 bg-slate-dark border border-slate-mid rounded-lg text-white placeholder-slate-light focus:outline-none focus:border-neon-purple/50 focus:ring-2 focus:ring-neon-purple/20 transition-all duration-300;
+  }
+
+  .section-title {
+    @apply font-display text-xl font-semibold text-white mb-4 flex items-center gap-2;
+  }
+
+  .metric-value {
+    @apply font-display text-3xl font-bold text-white;
+  }
+
+  .metric-label {
+    @apply text-sm text-slate-light;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
