@@ -135,7 +135,7 @@ export const WardrobePage = () => {
             <div className="wardrobe-page__actions">
               <button
                 type="button"
-                className="wardrobe-page__action-btn"
+                className={`wardrobe-page__action-btn ${showFilters ? '' : 'wardrobe-page__action-btn--secondary'}`}
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter size={16} />
@@ -143,7 +143,7 @@ export const WardrobePage = () => {
               </button>
               <button
                 type="button"
-                className="wardrobe-page__action-btn"
+                className="wardrobe-page__action-btn wardrobe-page__action-btn--secondary"
                 onClick={handleCreateSnapshot}
               >
                 <Download size={16} />
@@ -151,7 +151,7 @@ export const WardrobePage = () => {
               </button>
               <button
                 type="button"
-                className="wardrobe-page__action-btn wardrobe-page__action-btn--primary"
+                className="wardrobe-page__action-btn"
               >
                 <Plus size={16} />
                 添加衣物

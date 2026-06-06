@@ -1,5 +1,6 @@
 import type { Product, RecommendationResult } from '../../types';
 import { Heart, ShoppingCart, Eye, Star, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
 
 interface ProductCardProps {
   product: Product | RecommendationResult['product'];
@@ -18,6 +19,8 @@ export const ProductCard = ({
   onAddToWishlist,
   showMatchScore = true,
 }: ProductCardProps) => {
+  const [imageError, setImageError] = useState(false);
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return '#00A651';
     if (score >= 60) return '#FFD166';
@@ -30,19 +33,44 @@ export const ProductCard = ({
     : 0;
 
   const prod = product as Product;
+  const primaryColor = prod.colors?.[0];
+  const primaryMaterial = prod.materials?.[0];
 
   return (
     <div className="product-card">
       <div className="product-card__image-wrapper">
-        {prod.images && prod.images[0] ? (
-          <img
-            src={prod.images[0]}
-            alt={prod.name}
-            className="product-card__image"
-            loading="lazy"
-          />
+        {prod.images && prod.images[0] && !imageError ? (
+          <>
+            <img
+              src={prod.images[0]}
+              alt={prod.name}
+              className="product-card__image"
+              loading="lazy"
+              onError={() => setImageError(true)}
+            />
+            <div
+              className="product-card__overlay"
+              style={{
+                background: primaryColor
+                  ? `linear-gradient(135deg, ${primaryColor.hex}20 0%, ${primaryColor.hex}40 100%)`
+                  : 'transparent',
+              }}
+            />
+          </>
         ) : (
-          <div className="product-card__placeholder">👔</div>
+          <div
+            className="product-card__placeholder"
+            style={{
+              background: primaryColor
+                ? `linear-gradient(135deg, ${primaryColor.hex}30 0%, ${primaryColor.hex}60 100%)`
+                : 'var(--bg-tertiary)',
+            }}
+          >
+            <div className="product-card__placeholder-icon">👔</div>
+            <div className="product-card__placeholder-text">
+              {primaryColor?.name} · {primaryMaterial?.name}
+            </div>
+          </div>
         )}
         {hasDiscount && (
           <div className="product-card__discount-badge">-{discountPercent}%</div>

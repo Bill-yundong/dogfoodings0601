@@ -1,5 +1,6 @@
 import type { ClothingItem } from '../../types';
 import { Plus, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface OutfitSlotProps {
   slot: string;
@@ -27,6 +28,8 @@ export const OutfitSlot = ({
   onRemove,
   disabled = false,
 }: OutfitSlotProps) => {
+  const [imageError, setImageError] = useState(false);
+
   return (
     <div className={`outfit-slot ${item ? 'outfit-slot--filled' : ''} ${disabled ? 'outfit-slot--disabled' : ''}`}>
       <div className="outfit-slot__header">
@@ -46,15 +49,34 @@ export const OutfitSlot = ({
       {item ? (
         <div className="outfit-slot__item" onClick={disabled ? undefined : onAdd}>
           <div className="outfit-slot__item-image-wrapper">
-            {item.imageUrl ? (
-              <img
-                src={item.imageUrl}
-                alt={item.name}
-                className="outfit-slot__item-image"
-              />
+            {item.imageUrl && !imageError ? (
+              <>
+                <img
+                  src={item.imageUrl}
+                  alt={item.name}
+                  className="outfit-slot__item-image"
+                  onError={() => setImageError(true)}
+                />
+                <div
+                  className="outfit-slot__item-overlay"
+                  style={{
+                    background: `linear-gradient(135deg, ${item.color.hex}20 0%, ${item.color.hex}40 100%)`,
+                  }}
+                />
+              </>
             ) : (
-              <div className="outfit-slot__item-placeholder">
-                {slotIcons[slot] || '👔'}
+              <div
+                className="outfit-slot__item-placeholder"
+                style={{
+                  background: `linear-gradient(135deg, ${item.color.hex}30 0%, ${item.color.hex}60 100%)`,
+                }}
+              >
+                <div className="outfit-slot__item-placeholder-icon">
+                  {slotIcons[slot] || '👔'}
+                </div>
+                <div className="outfit-slot__item-placeholder-text">
+                  {item.color.name}
+                </div>
               </div>
             )}
             <div

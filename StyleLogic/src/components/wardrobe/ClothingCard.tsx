@@ -1,5 +1,6 @@
 import type { ClothingItem } from '../../types';
 import { ShoppingBag, Eye, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface ClothingCardProps {
   item: ClothingItem;
@@ -22,6 +23,8 @@ export const ClothingCard = ({
   selected = false,
   matchScore,
 }: ClothingCardProps) => {
+  const [imageError, setImageError] = useState(false);
+
   const categoryIcons: Record<string, string> = {
     top: '👕',
     bottom: '👖',
@@ -38,22 +41,56 @@ export const ClothingCard = ({
     winter: '冬',
   };
 
+  const getCategoryLabel = (category: string) => {
+    const labels: Record<string, string> = {
+      top: '上衣',
+      bottom: '下装',
+      outerwear: '外套',
+      dress: '连衣裙',
+      shoes: '鞋履',
+      accessory: '配饰',
+    };
+    return labels[category] || category;
+  };
+
   return (
     <div
       className={`clothing-card ${selected ? 'clothing-card--selected' : ''}`}
       onClick={onClick}
     >
       <div className="clothing-card__image-wrapper">
-        {item.imageUrl ? (
-          <img
-            src={item.imageUrl}
-            alt={item.name}
-            className="clothing-card__image"
-            loading="lazy"
-          />
+        {item.imageUrl && !imageError ? (
+          <>
+            <img
+              src={item.imageUrl}
+              alt={item.name}
+              className="clothing-card__image"
+              loading="lazy"
+              onError={() => setImageError(true)}
+            />
+            <div
+              className="clothing-card__overlay"
+              style={{
+                background: `linear-gradient(135deg, ${item.color.hex}20 0%, ${item.color.hex}40 100%)`,
+              }}
+            />
+          </>
         ) : (
-          <div className="clothing-card__placeholder">
-            {categoryIcons[item.category]}
+          <div
+            className="clothing-card__placeholder"
+            style={{
+              background: `linear-gradient(135deg, ${item.color.hex}30 0%, ${item.color.hex}60 100%)`,
+            }}
+          >
+            <div className="clothing-card__placeholder-icon">
+              {categoryIcons[item.category]}
+            </div>
+            <div className="clothing-card__placeholder-text">
+              {item.color.name} · {item.material.name}
+            </div>
+            <div className="clothing-card__placeholder-category">
+              {getCategoryLabel(item.category)}
+            </div>
           </div>
         )}
         <div
