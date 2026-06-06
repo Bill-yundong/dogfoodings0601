@@ -4,6 +4,7 @@ import 'dayjs/locale/zh-cn';
 import 'dayjs/locale/zh-tw';
 import 'dayjs/locale/en';
 import 'dayjs/locale/ja';
+import i18n from '@/i18n';
 
 export interface AppSettings {
   appearance: {
@@ -97,6 +98,9 @@ function applyLanguage(lang: string) {
   const dayjsLang = langMap[lang] || 'zh-cn';
   dayjs.locale(dayjsLang);
   document.documentElement.lang = lang;
+  if (i18n && i18n.global) {
+    i18n.global.locale.value = lang as typeof i18n.global.locale.value;
+  }
 }
 
 export function useSettings() {

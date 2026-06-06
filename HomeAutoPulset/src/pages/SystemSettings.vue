@@ -32,7 +32,9 @@ import { useDeviceStore } from '@/stores/deviceStore';
 import MetricCard from '@/components/common/MetricCard.vue';
 import { formatDateTime } from '@/utils/dateUtils';
 import { useSettings } from '@/composables/useSettings';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const conflictStore = useConflictStore();
 const snapshotStore = useSnapshotStore();
 const semanticStore = useSemanticStore();
@@ -89,35 +91,35 @@ const systemInfo = ref({
   databaseSize: 0,
 });
 
-const sections = [
-  { id: 'general', label: '通用设置', icon: Settings },
-  { id: 'notifications', label: '通知设置', icon: Bell },
-  { id: 'security', label: '安全设置', icon: Shield },
-  { id: 'appearance', label: '外观设置', icon: Palette },
-  { id: 'system', label: '系统设置', icon: Globe },
-  { id: 'about', label: '关于系统', icon: Info },
-];
+const sections = computed(() => [
+  { id: 'general', label: t('systemSettings.general'), icon: Settings },
+  { id: 'notifications', label: t('systemSettings.notifications'), icon: Bell },
+  { id: 'security', label: t('systemSettings.security'), icon: Shield },
+  { id: 'appearance', label: t('systemSettings.appearance'), icon: Palette },
+  { id: 'system', label: t('systemSettings.system'), icon: Globe },
+  { id: 'about', label: t('systemSettings.about'), icon: Info },
+]);
 
-const accentColors = [
-  { value: 'purple', label: '霓虹紫', color: '#7C4DFF' },
-  { value: 'cyan', label: '科技蓝', color: '#00E5FF' },
-  { value: 'green', label: '清新绿', color: '#00C853' },
-  { value: 'orange', label: '活力橙', color: '#FF6B35' },
-];
+const accentColors = computed(() => [
+  { value: 'purple', label: t('systemSettings.neonPurple'), color: '#7C4DFF' },
+  { value: 'cyan', label: t('systemSettings.cyberTeal'), color: '#00E5FF' },
+  { value: 'green', label: t('systemSettings.freshGreen'), color: '#00C853' },
+  { value: 'orange', label: t('systemSettings.vibrantOrange'), color: '#FF6B35' },
+]);
 
-const languages = [
-  { value: 'zh-CN', label: '简体中文' },
-  { value: 'zh-TW', label: '繁體中文' },
-  { value: 'en-US', label: 'English' },
-  { value: 'ja-JP', label: '日本語' },
-];
+const languages = computed(() => [
+  { value: 'zh-CN', label: t('systemSettings.simplifiedChinese') },
+  { value: 'zh-TW', label: t('systemSettings.traditionalChinese') },
+  { value: 'en-US', label: t('systemSettings.english') },
+  { value: 'ja-JP', label: t('systemSettings.japanese') },
+]);
 
-const timezones = [
-  { value: 'Asia/Shanghai', label: '中国标准时间 (UTC+8)' },
-  { value: 'Asia/Tokyo', label: '日本标准时间 (UTC+9)' },
-  { value: 'America/New_York', label: '美国东部时间 (UTC-5)' },
-  { value: 'Europe/London', label: '英国时间 (UTC+0)' },
-];
+const timezones = computed(() => [
+  { value: 'Asia/Shanghai', label: t('systemSettings.chinaTimezone') },
+  { value: 'Asia/Tokyo', label: t('systemSettings.tokyoTimezone') },
+  { value: 'America/New_York', label: t('systemSettings.newYorkTimezone') },
+  { value: 'Europe/London', label: t('systemSettings.londonTimezone') },
+]);
 
 const startUptimeCounter = () => {
   setInterval(() => {
@@ -130,7 +132,7 @@ const formatUptime = (seconds: number) => {
   const hours = Math.floor((seconds % 86400) / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
-  return `${days}天 ${hours}小时 ${minutes}分钟 ${secs}秒`;
+  return `${days}${t('systemSettings.days')} ${hours}${t('systemSettings.hours')} ${minutes}${t('systemSettings.minutes')} ${secs}${t('systemSettings.seconds')}`;
 };
 
 const exportData = () => {
@@ -165,7 +167,7 @@ const handleFileImport = (event: Event) => {
   reader.onload = (e) => {
     try {
       const data = JSON.parse(e.target?.result as string);
-      if (confirm('确定要导入备份数据吗？这将覆盖现有数据。')) {
+      if (confirm(t('systemSettings.confirmImport'))) {
         if (data.conflicts) conflictStore.conflicts = data.conflicts;
         if (data.snapshots) snapshotStore.snapshots = data.snapshots;
         if (data.devices) deviceStore.devices = data.devices;
@@ -180,10 +182,10 @@ const handleFileImport = (event: Event) => {
             });
           }
         }
-        alert('数据导入成功！');
+        alert(t('systemSettings.importSuccess'));
       }
     } catch (err) {
-      alert('导入失败：文件格式不正确');
+      alert(t('systemSettings.importFailed'));
     }
   };
   reader.readAsText(file);
@@ -191,24 +193,24 @@ const handleFileImport = (event: Event) => {
 };
 
 const resetSystem = () => {
-  if (confirm('确定要重置系统吗？这将清除所有本地数据，此操作不可恢复！')) {
-    if (confirm('请再次确认：您确定要重置所有数据吗？')) {
+  if (confirm(t('systemSettings.confirmReset'))) {
+    if (confirm(t('systemSettings.confirmResetAgain'))) {
       localStorage.clear();
       indexedDB.deleteDatabase('homeautopulse_db');
-      alert('系统已重置，页面将刷新');
+      alert(t('systemSettings.resetComplete'));
       location.reload();
     }
   }
 };
 
 const clearConflictHistory = () => {
-  if (confirm('确定要清除所有冲突历史记录吗？')) {
+  if (confirm(t('systemSettings.confirmClearConflicts'))) {
     conflictStore.conflicts.splice(0, conflictStore.conflicts.length);
   }
 };
 
 const clearSnapshots = () => {
-  if (confirm('确定要清除所有设备快照吗？')) {
+  if (confirm(t('systemSettings.confirmClearSnapshots'))) {
     snapshotStore.snapshots.splice(0, snapshotStore.snapshots.length);
   }
 };
@@ -218,7 +220,7 @@ const generateTestConflict = () => {
 };
 
 const runDiagnostics = async () => {
-  alert('系统诊断完成，所有组件运行正常！');
+  alert(t('systemSettings.diagnosticsComplete'));
 };
 
 onMounted(() => {
@@ -232,37 +234,37 @@ onMounted(() => {
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-white flex items-center gap-3">
-            <Settings class="w-7 h-7 text-neon-purple" />
-            系统设置
-          </h1>
-          <p class="text-slate-light mt-1">
-            配置系统参数、通知、安全和外观选项
-          </p>
-        </div>
+            <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+              <Settings class="w-7 h-7 text-neon-purple" />
+              {{ t('systemSettings.title') }}
+            </h1>
+            <p class="text-slate-light mt-1">
+              {{ t('systemSettings.subtitle') }}
+            </p>
+          </div>
       </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <MetricCard
-        title="运行时间"
+        :title="t('systemSettings.uptime')"
         :value="formatUptime(systemInfo.uptime)"
         :icon="Clock"
         color="cyan"
       />
       <MetricCard
-        title="系统版本"
+        :title="t('systemSettings.systemVersion')"
         :value="`v${systemInfo.version}`"
         :icon="Cpu"
         color="purple"
       />
       <MetricCard
-        title="设备数量"
+        :title="t('systemSettings.deviceCount')"
         :value="deviceStore.devices.length"
         :icon="Cpu"
         color="green"
       />
       <MetricCard
-        title="冲突记录"
+        :title="t('systemSettings.conflictRecords')"
         :value="conflictStore.conflicts.length"
         :icon="AlertTriangle"
         color="orange"
@@ -294,14 +296,14 @@ onMounted(() => {
           <div class="glass-card p-6">
             <h2 class="text-lg font-semibold text-white mb-6 flex items-center gap-2">
               <Settings class="w-5 h-5 text-neon-purple" />
-              通用设置
+              {{ t('systemSettings.general') }}
             </h2>
 
             <div class="space-y-6">
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">自动解析冲突</div>
-                  <div class="text-sm text-slate-light mt-0.5">检测到冲突时自动应用解析策略</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.autoResolveConflicts') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.autoResolveConflictsDesc') }}</div>
                 </div>
                 <button
                   @click="settings.general.autoResolveConflicts = !settings.general.autoResolveConflicts"
@@ -315,8 +317,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">自动创建快照</div>
-                  <div class="text-sm text-slate-light mt-0.5">设备状态变化时自动创建快照</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.autoCreateSnapshots') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.autoCreateSnapshotsDesc') }}</div>
                 </div>
                 <button
                   @click="settings.general.autoCreateSnapshots = !settings.general.autoCreateSnapshots"
@@ -330,8 +332,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">启用离线模式</div>
-                  <div class="text-sm text-slate-light mt-0.5">网络断开时使用本地缓存数据</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.enableOfflineMode') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.enableOfflineModeDesc') }}</div>
                 </div>
                 <button
                   @click="settings.general.enableOfflineMode = !settings.general.enableOfflineMode"
@@ -345,8 +347,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">自动同步快照</div>
-                  <div class="text-sm text-slate-light mt-0.5">网络恢复时自动同步离线快照</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.autoSyncSnapshots') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.autoSyncSnapshotsDesc') }}</div>
                 </div>
                 <button
                   @click="settings.general.autoSyncSnapshots = !settings.general.autoSyncSnapshots"
@@ -360,8 +362,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">快照间隔</div>
-                  <div class="text-sm text-slate-light mt-0.5">定时创建快照的时间间隔（分钟）</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.snapshotInterval') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.snapshotIntervalDesc') }}</div>
                 </div>
                 <input
                   v-model.number="settings.general.snapshotInterval"
@@ -374,8 +376,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4">
                 <div>
-                  <div class="text-white font-medium">离线数据保留</div>
-                  <div class="text-sm text-slate-light mt-0.5">离线快照最长保留天数</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.maxOfflineDays') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.maxOfflineDaysDesc') }}</div>
                 </div>
                 <input
                   v-model.number="settings.general.maxOfflineDays"
@@ -391,24 +393,24 @@ onMounted(() => {
           <div class="glass-card p-6">
             <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <Zap class="w-5 h-5 text-neon-purple" />
-              快捷操作
+              {{ t('systemSettings.quickActions') }}
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <button @click="generateTestConflict" class="btn-secondary text-sm justify-start">
                 <AlertTriangle class="w-4 h-4 mr-2 text-alert-orange" />
-                生成测试冲突
+                {{ t('systemSettings.generateTestConflict') }}
               </button>
               <button @click="runDiagnostics" class="btn-secondary text-sm justify-start">
                 <CheckCircle class="w-4 h-4 mr-2 text-success-green" />
-                运行系统诊断
+                {{ t('systemSettings.runDiagnostics') }}
               </button>
               <button @click="clearConflictHistory" class="btn-secondary text-sm justify-start">
                 <Trash2 class="w-4 h-4 mr-2 text-danger-red" />
-                清除冲突历史
+                {{ t('systemSettings.clearConflictHistory') }}
               </button>
               <button @click="clearSnapshots" class="btn-secondary text-sm justify-start">
                 <Database class="w-4 h-4 mr-2 text-cyber-teal" />
-                清除所有快照
+                {{ t('systemSettings.clearAllSnapshots') }}
               </button>
             </div>
           </div>
@@ -418,7 +420,7 @@ onMounted(() => {
           <div class="glass-card p-6">
             <h2 class="text-lg font-semibold text-white mb-6 flex items-center gap-2">
               <Bell class="w-5 h-5 text-neon-purple" />
-              通知设置
+              {{ t('systemSettings.notifications') }}
             </h2>
 
             <div class="space-y-6">
@@ -426,8 +428,8 @@ onMounted(() => {
                 <div class="flex items-center gap-3">
                   <Smartphone class="w-5 h-5 text-cyber-teal" />
                   <div>
-                    <div class="text-white font-medium">推送通知</div>
-                    <div class="text-sm text-slate-light mt-0.5">接收浏览器推送通知</div>
+                    <div class="text-white font-medium">{{ t('systemSettings.pushNotifications') }}</div>
+                    <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.pushNotificationsDesc') }}</div>
                   </div>
                 </div>
                 <button
@@ -444,8 +446,8 @@ onMounted(() => {
                 <div class="flex items-center gap-3">
                   <Mail class="w-5 h-5 text-alert-orange" />
                   <div>
-                    <div class="text-white font-medium">邮件通知</div>
-                    <div class="text-sm text-slate-light mt-0.5">重要事件发送邮件提醒</div>
+                    <div class="text-white font-medium">{{ t('systemSettings.emailNotifications') }}</div>
+                    <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.emailNotificationsDesc') }}</div>
                   </div>
                 </div>
                 <button
@@ -462,8 +464,8 @@ onMounted(() => {
                 <div class="flex items-center gap-3">
                   <Bell class="w-5 h-5 text-neon-purple" />
                   <div>
-                    <div class="text-white font-medium">提示音</div>
-                    <div class="text-sm text-slate-light mt-0.5">通知时播放提示音</div>
+                    <div class="text-white font-medium">{{ t('systemSettings.soundAlerts') }}</div>
+                    <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.soundAlertsDesc') }}</div>
                   </div>
                 </div>
                 <button
@@ -478,8 +480,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">冲突警报</div>
-                  <div class="text-sm text-slate-light mt-0.5">检测到新冲突时发出通知</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.conflictAlert') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.conflictAlertDesc') }}</div>
                 </div>
                 <button
                   @click="settings.notifications.conflictAlert = !settings.notifications.conflictAlert"
@@ -493,8 +495,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">设备离线</div>
-                  <div class="text-sm text-slate-light mt-0.5">设备离线时发出通知</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.deviceOfflineAlert') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.deviceOfflineAlertDesc') }}</div>
                 </div>
                 <button
                   @click="settings.notifications.deviceOffline = !settings.notifications.deviceOffline"
@@ -508,8 +510,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">系统错误</div>
-                  <div class="text-sm text-slate-light mt-0.5">系统发生错误时发出通知</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.systemErrorAlert') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.systemErrorAlertDesc') }}</div>
                 </div>
                 <button
                   @click="settings.notifications.systemError = !settings.notifications.systemError"
@@ -523,8 +525,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4">
                 <div>
-                  <div class="text-white font-medium">每日报告</div>
-                  <div class="text-sm text-slate-light mt-0.5">每日发送系统运行报告</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.dailyReport') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.dailyReportDesc') }}</div>
                 </div>
                 <button
                   @click="settings.notifications.dailyReport = !settings.notifications.dailyReport"
@@ -543,14 +545,14 @@ onMounted(() => {
           <div class="glass-card p-6">
             <h2 class="text-lg font-semibold text-white mb-6 flex items-center gap-2">
               <Shield class="w-5 h-5 text-neon-purple" />
-              安全设置
+              {{ t('systemSettings.security') }}
             </h2>
 
             <div class="space-y-6">
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">双因素认证</div>
-                  <div class="text-sm text-slate-light mt-0.5">启用后登录需要额外验证</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.twoFactorAuth') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.twoFactorAuthDesc') }}</div>
                 </div>
                 <button
                   @click="settings.security.twoFactorAuth = !settings.security.twoFactorAuth"
@@ -564,8 +566,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">会话超时</div>
-                  <div class="text-sm text-slate-light mt-0.5">无操作自动登出时间（分钟）</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.sessionTimeout') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.sessionTimeoutDesc') }}</div>
                 </div>
                 <input
                   v-model.number="settings.security.sessionTimeout"
@@ -578,8 +580,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">远程访问</div>
-                  <div class="text-sm text-slate-light mt-0.5">允许从外部网络访问系统</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.remoteAccess') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.remoteAccessDesc') }}</div>
                 </div>
                 <button
                   @click="settings.security.allowRemoteAccess = !settings.security.allowRemoteAccess"
@@ -593,8 +595,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">自动锁定</div>
-                  <div class="text-sm text-slate-light mt-0.5">页面隐藏时自动锁定</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.autoLock') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.autoLockDesc') }}</div>
                 </div>
                 <button
                   @click="settings.security.autoLock = !settings.security.autoLock"
@@ -608,8 +610,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4">
                 <div>
-                  <div class="text-white font-medium">登录提醒</div>
-                  <div class="text-sm text-slate-light mt-0.5">新设备登录时发送通知</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.loginAlerts') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.loginAlertsDesc') }}</div>
                 </div>
                 <button
                   @click="settings.security.loginAlerts = !settings.security.loginAlerts"
@@ -628,12 +630,12 @@ onMounted(() => {
           <div class="glass-card p-6">
             <h2 class="text-lg font-semibold text-white mb-6 flex items-center gap-2">
               <Palette class="w-5 h-5 text-neon-purple" />
-              外观设置
+              {{ t('systemSettings.appearance') }}
             </h2>
 
             <div class="space-y-6">
               <div class="py-4 border-b border-slate-dark">
-                <div class="text-white font-medium mb-3">主题色</div>
+                <div class="text-white font-medium mb-3">{{ t('systemSettings.accentColor') }}</div>
                 <div class="flex gap-3">
                   <button
                     v-for="color in accentColors"
@@ -658,8 +660,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">动画效果</div>
-                  <div class="text-sm text-slate-light mt-0.5">启用界面过渡动画</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.animations') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.animationsDesc') }}</div>
                 </div>
                 <button
                   @click="settings.appearance.animations = !settings.appearance.animations"
@@ -673,8 +675,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">紧凑模式</div>
-                  <div class="text-sm text-slate-light mt-0.5">减小界面元素间距</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.compactMode') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.compactModeDesc') }}</div>
                 </div>
                 <button
                   @click="settings.appearance.compactMode = !settings.appearance.compactMode"
@@ -688,8 +690,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4">
                 <div>
-                  <div class="text-white font-medium">显示 FPS</div>
-                  <div class="text-sm text-slate-light mt-0.5">在右下角显示帧率</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.showFPS') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.showFPSDesc') }}</div>
                 </div>
                 <button
                   @click="settings.appearance.showFPS = !settings.appearance.showFPS"
@@ -708,14 +710,14 @@ onMounted(() => {
           <div class="glass-card p-6">
             <h2 class="text-lg font-semibold text-white mb-6 flex items-center gap-2">
               <Globe class="w-5 h-5 text-neon-purple" />
-              系统设置
+              {{ t('systemSettings.system') }}
             </h2>
 
             <div class="space-y-6">
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">语言</div>
-                  <div class="text-sm text-slate-light mt-0.5">选择界面显示语言</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.language') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.languageDesc') }}</div>
                 </div>
                 <select
                   :value="settings.system.language"
@@ -730,8 +732,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">时区</div>
-                  <div class="text-sm text-slate-light mt-0.5">选择您所在的时区</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.timezone') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.timezoneDesc') }}</div>
                 </div>
                 <select v-model="settings.system.timezone" class="input-field w-64">
                   <option v-for="tz in timezones" :key="tz.value" :value="tz.value">
@@ -742,8 +744,8 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4 border-b border-slate-dark">
                 <div>
-                  <div class="text-white font-medium">日期格式</div>
-                  <div class="text-sm text-slate-light mt-0.5">选择日期显示格式</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.dateFormat') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.dateFormatDesc') }}</div>
                 </div>
                 <select v-model="settings.system.dateFormat" class="input-field w-40">
                   <option value="YYYY-MM-DD">YYYY-MM-DD</option>
@@ -754,12 +756,12 @@ onMounted(() => {
 
               <div class="flex items-center justify-between py-4">
                 <div>
-                  <div class="text-white font-medium">时间格式</div>
-                  <div class="text-sm text-slate-light mt-0.5">选择时间显示格式</div>
+                  <div class="text-white font-medium">{{ t('systemSettings.timeFormat') }}</div>
+                  <div class="text-sm text-slate-light mt-0.5">{{ t('systemSettings.timeFormatDesc') }}</div>
                 </div>
                 <select v-model="settings.system.timeFormat" class="input-field w-40">
-                  <option value="24h">24 小时制</option>
-                  <option value="12h">12 小时制</option>
+                  <option value="24h">{{ t('systemSettings.hour24') }}</option>
+                  <option value="12h">{{ t('systemSettings.hour12') }}</option>
                 </select>
               </div>
             </div>
@@ -768,16 +770,16 @@ onMounted(() => {
           <div class="glass-card p-6">
             <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <Database class="w-5 h-5 text-neon-purple" />
-              数据管理
+              {{ t('systemSettings.dataManagement') }}
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <button @click="exportData" class="btn-secondary text-sm justify-start">
                 <Download class="w-4 h-4 mr-2 text-success-green" />
-                导出所有数据
+                {{ t('systemSettings.exportAllData') }}
               </button>
               <button @click="importData" class="btn-secondary text-sm justify-start">
                 <Upload class="w-4 h-4 mr-2 text-cyber-teal" />
-                导入备份数据
+                {{ t('systemSettings.importBackupData') }}
               </button>
             </div>
           </div>
@@ -785,14 +787,14 @@ onMounted(() => {
           <div class="glass-card p-6 border-danger-red/50">
             <h2 class="text-lg font-semibold text-danger-red mb-4 flex items-center gap-2">
               <AlertTriangle class="w-5 h-5" />
-              危险操作
+              {{ t('systemSettings.dangerZone') }}
             </h2>
             <p class="text-sm text-slate-light mb-4">
-              以下操作会清除数据且无法恢复，请谨慎操作。
+              {{ t('systemSettings.dangerZoneDesc') }}
             </p>
             <button @click="resetSystem" class="btn-danger text-sm justify-start">
               <RotateCcw class="w-4 h-4 mr-2" />
-              重置系统
+              {{ t('systemSettings.resetSystem') }}
             </button>
           </div>
         </div>
@@ -804,93 +806,93 @@ onMounted(() => {
                 <Monitor class="w-10 h-10 text-neon-purple" />
               </div>
               <h2 class="text-2xl font-bold text-white mb-2">HomeAutoPulse</h2>
-              <p class="text-slate-light">家庭自动化系统逻辑冲突监控平台</p>
+              <p class="text-slate-light">{{ t('systemSettings.homeAutomationPlatform') }}</p>
             </div>
 
             <div class="space-y-4">
               <div class="flex items-center justify-between py-3 border-b border-slate-dark">
-                <span class="text-slate-light">系统版本</span>
+                <span class="text-slate-light">{{ t('systemSettings.systemVersion') }}</span>
                 <span class="text-white font-mono">v{{ systemInfo.version }}</span>
               </div>
               <div class="flex items-center justify-between py-3 border-b border-slate-dark">
-                <span class="text-slate-light">构建时间</span>
+                <span class="text-slate-light">{{ t('systemSettings.buildTime') }}</span>
                 <span class="text-white">{{ systemInfo.buildTime }}</span>
               </div>
               <div class="flex items-center justify-between py-3 border-b border-slate-dark">
-                <span class="text-slate-light">运行时间</span>
+                <span class="text-slate-light">{{ t('systemSettings.uptime') }}</span>
                 <span class="text-white">{{ formatUptime(systemInfo.uptime) }}</span>
               </div>
               <div class="flex items-center justify-between py-3 border-b border-slate-dark">
-                <span class="text-slate-light">最后备份</span>
+                <span class="text-slate-light">{{ t('systemSettings.lastBackup') }}</span>
                 <span class="text-white">{{ formatDateTime(systemInfo.lastBackup) }}</span>
               </div>
               <div class="flex items-center justify-between py-3 border-b border-slate-dark">
-                <span class="text-slate-light">数据库大小</span>
+                <span class="text-slate-light">{{ t('systemSettings.databaseSize') }}</span>
                 <span class="text-white">{{ (systemInfo.databaseSize / 1024).toFixed(2) }} KB</span>
               </div>
               <div class="flex items-center justify-between py-3">
-                <span class="text-slate-light">设备总数</span>
-                <span class="text-white">{{ deviceStore.devices.length }} 台</span>
+                <span class="text-slate-light">{{ t('systemSettings.totalDevicesLabel') }}</span>
+                <span class="text-white">{{ deviceStore.devices.length }} {{ t('systemSettings.frontend') === 'Frontend' ? '' : '台' }}</span>
               </div>
             </div>
           </div>
 
           <div class="glass-card p-6">
-            <h3 class="text-lg font-semibold text-white mb-4">技术栈</h3>
+            <h3 class="text-lg font-semibold text-white mb-4">{{ t('systemSettings.techStack') }}</h3>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div class="bg-slate-dark/50 rounded-lg p-3 text-center">
                 <div class="text-neon-purple font-medium">Vue 3.4</div>
-                <div class="text-xs text-slate-light">前端框架</div>
+                <div class="text-xs text-slate-light">{{ t('systemSettings.frontendFramework') }}</div>
               </div>
               <div class="bg-slate-dark/50 rounded-lg p-3 text-center">
                 <div class="text-cyber-teal font-medium">TypeScript 5.4</div>
-                <div class="text-xs text-slate-light">类型系统</div>
+                <div class="text-xs text-slate-light">{{ t('systemSettings.typeSystem') }}</div>
               </div>
               <div class="bg-slate-dark/50 rounded-lg p-3 text-center">
                 <div class="text-alert-orange font-medium">Vite 5.2</div>
-                <div class="text-xs text-slate-light">构建工具</div>
+                <div class="text-xs text-slate-light">{{ t('systemSettings.buildTool') }}</div>
               </div>
               <div class="bg-slate-dark/50 rounded-lg p-3 text-center">
                 <div class="text-success-green font-medium">Pinia 2.1</div>
-                <div class="text-xs text-slate-light">状态管理</div>
+                <div class="text-xs text-slate-light">{{ t('systemSettings.stateManagement') }}</div>
               </div>
               <div class="bg-slate-dark/50 rounded-lg p-3 text-center">
                 <div class="text-neon-purple font-medium">TailwindCSS 3.4</div>
-                <div class="text-xs text-slate-light">样式框架</div>
+                <div class="text-xs text-slate-light">{{ t('systemSettings.styleFramework') }}</div>
               </div>
               <div class="bg-slate-dark/50 rounded-lg p-3 text-center">
                 <div class="text-cyber-teal font-medium">IndexedDB</div>
-                <div class="text-xs text-slate-light">离线存储</div>
+                <div class="text-xs text-slate-light">{{ t('systemSettings.offlineStorage') }}</div>
               </div>
             </div>
           </div>
 
           <div class="glass-card p-6">
-            <h3 class="text-lg font-semibold text-white mb-4">核心功能</h3>
+            <h3 class="text-lg font-semibold text-white mb-4">{{ t('systemSettings.coreFeatures') }}</h3>
             <ul class="space-y-2 text-sm text-slate-light">
               <li class="flex items-center gap-2">
                 <CheckCircle class="w-4 h-4 text-success-green flex-shrink-0" />
-                多维度传感器数据语义对齐引擎
+                {{ t('systemSettings.semanticAlignmentFeature') }}
               </li>
               <li class="flex items-center gap-2">
                 <CheckCircle class="w-4 h-4 text-success-green flex-shrink-0" />
-                异步冲突解析引擎（优先级队列 + 多worker调度）
+                {{ t('systemSettings.conflictEngineFeature') }}
               </li>
               <li class="flex items-center gap-2">
                 <CheckCircle class="w-4 h-4 text-success-green flex-shrink-0" />
-                IndexedDB 离线工况快照存储
+                {{ t('systemSettings.snapshotFeature') }}
               </li>
               <li class="flex items-center gap-2">
                 <CheckCircle class="w-4 h-4 text-success-green flex-shrink-0" />
-                安防系统与智能家居控制中心双视角
+                {{ t('systemSettings.dualPerspectiveFeature') }}
               </li>
               <li class="flex items-center gap-2">
                 <CheckCircle class="w-4 h-4 text-success-green flex-shrink-0" />
-                实时数据可视化监控
+                {{ t('systemSettings.visualizationFeature') }}
               </li>
               <li class="flex items-center gap-2">
                 <CheckCircle class="w-4 h-4 text-success-green flex-shrink-0" />
-                可配置的冲突解析策略
+                {{ t('systemSettings.configurableStrategyFeature') }}
               </li>
             </ul>
           </div>

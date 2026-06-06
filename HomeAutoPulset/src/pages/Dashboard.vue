@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import * as echarts from 'echarts';
 import {
   AlertTriangle,
@@ -27,6 +28,7 @@ import { formatDateTime, formatDuration, getTimeAgo, formatTime } from '@/utils/
 import { getConflictTypeText, getSeverityTagClass } from '@/utils/conflictUtils';
 import { generateConflictTrendData } from '@/utils/mockData';
 
+const { t, locale } = useI18n();
 const router = useRouter();
 const conflictStore = useConflictStore();
 const deviceStore = useDeviceStore();
@@ -60,7 +62,7 @@ const initCharts = () => {
         textStyle: { color: '#E2E8F0' },
       },
       legend: {
-        data: ['检测冲突', '已解决'],
+        data: [t('dashboard.totalConflicts'), t('dashboard.resolvedConflicts')],
         textStyle: { color: '#94A3B8' },
         top: 0,
       },
@@ -85,7 +87,7 @@ const initCharts = () => {
       },
       series: [
         {
-          name: '检测冲突',
+          name: t('dashboard.totalConflicts'),
           type: 'line',
           smooth: true,
           data: trendData.value.map(d => d.count),
@@ -99,7 +101,7 @@ const initCharts = () => {
           },
         },
         {
-          name: '已解决',
+          name: t('dashboard.resolvedConflicts'),
           type: 'line',
           smooth: true,
           data: trendData.value.map(d => d.resolved),
@@ -154,10 +156,10 @@ const initCharts = () => {
             },
           },
           data: [
-            { value: conflictStore.stats.critical, name: '严重', itemStyle: { color: '#FF5252' } },
-            { value: conflictStore.stats.high, name: '高危', itemStyle: { color: '#FF6B35' } },
-            { value: conflictStore.stats.medium, name: '中等', itemStyle: { color: '#FFD740' } },
-            { value: conflictStore.stats.low, name: '轻微', itemStyle: { color: '#2196F3' } },
+            { value: conflictStore.stats.critical, name: t('conflictCenter.critical'), itemStyle: { color: '#FF5252' } },
+            { value: conflictStore.stats.high, name: t('conflictCenter.high'), itemStyle: { color: '#FF6B35' } },
+            { value: conflictStore.stats.medium, name: t('conflictCenter.medium'), itemStyle: { color: '#FFD740' } },
+            { value: conflictStore.stats.low, name: t('conflictCenter.low'), itemStyle: { color: '#2196F3' } },
           ],
         },
       ],
@@ -185,43 +187,49 @@ onUnmounted(() => {
   trendChart?.dispose();
   typeChart?.dispose();
 });
+
+watch(locale, () => {
+  trendChart?.dispose();
+  typeChart?.dispose();
+  initCharts();
+});
 </script>
 
 <template>
   <div class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <MetricCard
-        title="活跃冲突"
+        :title="t('dashboard.activeConflicts')"
         :value="conflictStore.activeCount"
         :icon="AlertTriangle"
         color="danger"
         :trend="conflictStore.activeCount > 0 ? 'up' : 'neutral'"
-        :trendValue="conflictStore.activeCount > 0 ? '+2 今日' : '正常'"
+        :trendValue="conflictStore.activeCount > 0 ? `+2 ${t('common.success')}` : t('common.normal')"
       />
       <MetricCard
-        title="在线设备"
+        :title="t('dashboard.onlineDevices')"
         :value="deviceStore.onlineDevices.length"
         :unit="`/ ${deviceStore.devices.length}`"
         :icon="Cpu"
         color="success"
         trend="up"
-        trendValue="+1 本周"
+        trendValue="+1"
       />
       <MetricCard
-        title="已解决"
+        :title="t('dashboard.resolvedConflicts')"
         :value="conflictStore.resolvedCount"
         :icon="CheckCircle"
         color="info"
         trend="up"
-        trendValue="+5 今日"
+        trendValue="+5"
       />
       <MetricCard
-        title="离线快照"
+        :title="t('dashboard.pendingSnapshots')"
         :value="snapshotStore.offlineSnapshotCount"
         :icon="Database"
         color="warning"
         :trend="snapshotStore.pendingSyncCount > 0 ? 'neutral' : 'down'"
-        :trendValue="snapshotStore.pendingSyncCount > 0 ? `${snapshotStore.pendingSyncCount} 待同步` : '已同步'"
+        :trendValue="snapshotStore.pendingSyncCount > 0 ? `${snapshotStore.pendingSyncCount} ${t('snapshotManager.pendingSync')}` : t('snapshotManager.synced')"
       />
     </div>
 
@@ -229,7 +237,7 @@ onUnmounted(() => {
       <div class="lg:col-span-2 glass-card p-6">
         <h2 class="section-title">
           <Activity class="w-5 h-5 text-neon-purple" />
-          冲突趋势分析
+          {{ t('dashboard.conflictTrend') }}
         </h2>
         <div ref="trendChartRef" class="w-full h-72"></div>
       </div>
@@ -237,7 +245,7 @@ onUnmounted(() => {
       <div class="glass-card p-6">
         <h2 class="section-title">
           <Shield class="w-5 h-5 text-alert-orange" />
-          系统健康度
+          {{ t('dashboard.systemLoad') }}
         </h2>
         <div class="flex flex-col items-center justify-center py-4">
           <HealthScoreGauge :score="conflictStore.healthScore" :size="160" />
@@ -245,22 +253,22 @@ onUnmounted(() => {
         <div class="mt-6 space-y-4">
           <div>
             <div class="flex justify-between text-sm mb-1">
-              <span class="text-slate-light">安防系统</span>
-              <span class="text-success-green">正常</span>
+              <span class="text-slate-light">{{ t('dashboard.securitySystem') }}</span>
+              <span class="text-success-green">{{ t('dashboard.normal') }}</span>
             </div>
             <ProgressBar :value="95" color="success" height="sm" />
           </div>
           <div>
             <div class="flex justify-between text-sm mb-1">
-              <span class="text-slate-light">家居控制</span>
-              <span class="text-success-green">正常</span>
+              <span class="text-slate-light">{{ t('dashboard.homeControl') }}</span>
+              <span class="text-success-green">{{ t('dashboard.normal') }}</span>
             </div>
             <ProgressBar :value="88" color="success" height="sm" />
           </div>
           <div>
             <div class="flex justify-between text-sm mb-1">
-              <span class="text-slate-light">语义对齐</span>
-              <span class="text-warning-amber">良好</span>
+              <span class="text-slate-light">{{ t('dashboard.semanticAlignment') }}</span>
+              <span class="text-warning-amber">{{ t('dashboard.good') }}</span>
             </div>
             <ProgressBar :value="82" color="warning" height="sm" />
           </div>
@@ -272,7 +280,7 @@ onUnmounted(() => {
       <div class="glass-card p-6">
         <h2 class="section-title">
           <AlertTriangle class="w-5 h-5 text-alert-orange" />
-          最近冲突
+          {{ t('dashboard.recentConflicts') }}
         </h2>
         <div class="space-y-3">
           <div
@@ -291,39 +299,39 @@ onUnmounted(() => {
             </div>
           </div>
           <div v-if="recentConflicts.length === 0" class="text-center py-8 text-slate-light">
-            暂无冲突记录
+            {{ t('dashboard.noConflicts') }}
           </div>
         </div>
         <button
           @click="router.push('/conflicts')"
           class="w-full mt-4 btn-secondary text-sm"
         >
-          查看全部
+          {{ t('dashboard.viewAll') }}
         </button>
       </div>
 
       <div class="glass-card p-6">
         <h2 class="section-title">
           <Zap class="w-5 h-5 text-warning-amber" />
-          严重程度分布
+          {{ t('dashboard.severityDistribution') }}
         </h2>
         <div ref="typeChartRef" class="w-full h-64"></div>
         <div class="grid grid-cols-2 gap-3 mt-4">
           <div class="p-3 bg-danger-red/10 rounded-lg border border-danger-red/20">
             <div class="text-2xl font-bold text-danger-red">{{ conflictStore.stats.critical }}</div>
-            <div class="text-xs text-slate-light">严重</div>
+            <div class="text-xs text-slate-light">{{ t('dashboard.critical') }}</div>
           </div>
           <div class="p-3 bg-alert-orange/10 rounded-lg border border-alert-orange/20">
             <div class="text-2xl font-bold text-alert-orange">{{ conflictStore.stats.high }}</div>
-            <div class="text-xs text-slate-light">高危</div>
+            <div class="text-xs text-slate-light">{{ t('dashboard.high') }}</div>
           </div>
           <div class="p-3 bg-warning-amber/10 rounded-lg border border-warning-amber/20">
             <div class="text-2xl font-bold text-warning-amber">{{ conflictStore.stats.medium }}</div>
-            <div class="text-xs text-slate-light">中等</div>
+            <div class="text-xs text-slate-light">{{ t('dashboard.medium') }}</div>
           </div>
           <div class="p-3 bg-info-blue/10 rounded-lg border border-info-blue/20">
             <div class="text-2xl font-bold text-info-blue">{{ conflictStore.stats.low }}</div>
-            <div class="text-xs text-slate-light">轻微</div>
+            <div class="text-xs text-slate-light">{{ t('dashboard.low') }}</div>
           </div>
         </div>
       </div>
@@ -331,7 +339,7 @@ onUnmounted(() => {
       <div class="glass-card p-6">
         <h2 class="section-title">
           <Activity class="w-5 h-5 text-cyber-teal" />
-          实时传感器数据
+          {{ t('dashboard.realtimeSensorData') }}
         </h2>
         <div class="space-y-3 max-h-96 overflow-y-auto">
           <div
@@ -345,7 +353,7 @@ onUnmounted(() => {
             </div>
             <div class="flex items-center justify-between">
               <span class="text-lg font-bold text-neon-purple">
-                {{ typeof data.value === 'number' ? data.value : (data.value ? '开启' : '关闭') }}
+                {{ typeof data.value === 'number' ? data.value : (data.value ? t('dashboard.on') : t('dashboard.off')) }}
                 <span class="text-xs font-normal text-slate-light ml-1">{{ data.unit }}</span>
               </span>
               <span class="text-xs text-slate-mid">{{ formatTime(data.timestamp) }}</span>
@@ -355,7 +363,7 @@ onUnmounted(() => {
             </div>
           </div>
           <div v-if="recentSensorData.length === 0" class="text-center py-8 text-slate-light">
-            等待传感器数据...
+            {{ t('dashboard.waitingSensorData') }}
           </div>
         </div>
       </div>
@@ -365,34 +373,34 @@ onUnmounted(() => {
       <div class="glass-card p-6">
         <h2 class="section-title">
           <Shield class="w-5 h-5 text-alert-orange" />
-          安防系统状态
+          {{ t('dashboard.securityStatus') }}
         </h2>
         <div class="grid grid-cols-2 gap-4">
           <div class="p-4 bg-slate-dark/50 rounded-lg border border-slate-mid/30">
             <div class="flex items-center gap-2 mb-2">
               <div class="w-2 h-2 rounded-full bg-success-green animate-pulse"></div>
-              <span class="text-sm text-slate-light">布防状态</span>
+              <span class="text-sm text-slate-light">{{ t('dashboard.armedStatus') }}</span>
             </div>
-            <div class="text-xl font-bold text-white">{{ conflictStore.securityState.armed ? '已布防' : '已撤防' }}</div>
+            <div class="text-xl font-bold text-white">{{ conflictStore.securityState.armed ? t('dashboard.armed') : t('dashboard.disarmed') }}</div>
           </div>
           <div class="p-4 bg-slate-dark/50 rounded-lg border border-slate-mid/30">
             <div class="flex items-center gap-2 mb-2">
               <div class="w-2 h-2 rounded-full bg-info-blue"></div>
-              <span class="text-sm text-slate-light">当前场景</span>
+              <span class="text-sm text-slate-light">{{ t('dashboard.currentScene') }}</span>
             </div>
-            <div class="text-xl font-bold text-white">{{ semanticStore.activeScene?.name || '默认' }}</div>
+            <div class="text-xl font-bold text-white">{{ semanticStore.activeScene?.name || t('dashboard.default') }}</div>
           </div>
           <div class="p-4 bg-slate-dark/50 rounded-lg border border-slate-mid/30">
             <div class="flex items-center gap-2 mb-2">
               <div class="w-2 h-2 rounded-full bg-success-green"></div>
-              <span class="text-sm text-slate-light">在线设备</span>
+              <span class="text-sm text-slate-light">{{ t('dashboard.onlineDevices') }}</span>
             </div>
             <div class="text-xl font-bold text-white">{{ deviceStore.securityDevices.filter(d => d.status === 'online').length }}</div>
           </div>
           <div class="p-4 bg-slate-dark/50 rounded-lg border border-slate-mid/30">
             <div class="flex items-center gap-2 mb-2">
               <div class="w-2 h-2 rounded-full bg-warning-amber"></div>
-              <span class="text-sm text-slate-light">告警级别</span>
+              <span class="text-sm text-slate-light">{{ t('dashboard.alertLevel') }}</span>
             </div>
             <div class="text-xl font-bold text-white capitalize">{{ conflictStore.securityState.alertLevel }}</div>
           </div>
@@ -402,41 +410,41 @@ onUnmounted(() => {
       <div class="glass-card p-6">
         <h2 class="section-title">
           <Home class="w-5 h-5 text-info-blue" />
-          智能家居状态
+          {{ t('dashboard.smartHomeStatus') }}
         </h2>
         <div class="grid grid-cols-2 gap-4">
           <div class="p-4 bg-slate-dark/50 rounded-lg border border-slate-mid/30">
             <div class="flex items-center gap-2 mb-2">
               <div class="w-2 h-2 rounded-full bg-success-green"></div>
-              <span class="text-sm text-slate-light">空调状态</span>
+              <span class="text-sm text-slate-light">{{ t('dashboard.airconStatus') }}</span>
             </div>
             <div class="text-xl font-bold text-white">
-              {{ conflictStore.homeControlState.airConditioning.running ? '运行中' : '已关闭' }}
+              {{ conflictStore.homeControlState.airConditioning.running ? t('dashboard.running') : t('dashboard.closed') }}
             </div>
             <div class="text-xs text-slate-mid mt-1">
-              目标 {{ conflictStore.homeControlState.airConditioning.targetTemperature }}°C
+              {{ t('dashboard.target') }} {{ conflictStore.homeControlState.airConditioning.targetTemperature }}°C
             </div>
           </div>
           <div class="p-4 bg-slate-dark/50 rounded-lg border border-slate-mid/30">
             <div class="flex items-center gap-2 mb-2">
               <div :class="['w-2 h-2 rounded-full', conflictStore.homeControlState.energySaving.enabled ? 'bg-success-green' : 'bg-slate-mid']"></div>
-              <span class="text-sm text-slate-light">节能模式</span>
+              <span class="text-sm text-slate-light">{{ t('dashboard.energySaving') }}</span>
             </div>
             <div class="text-xl font-bold text-white">
-              {{ conflictStore.homeControlState.energySaving.enabled ? '已开启' : '已关闭' }}
+              {{ conflictStore.homeControlState.energySaving.enabled ? t('dashboard.enabled') : t('dashboard.disabled') }}
             </div>
           </div>
           <div class="p-4 bg-slate-dark/50 rounded-lg border border-slate-mid/30">
             <div class="flex items-center gap-2 mb-2">
               <div class="w-2 h-2 rounded-full bg-success-green"></div>
-              <span class="text-sm text-slate-light">在线设备</span>
+              <span class="text-sm text-slate-light">{{ t('dashboard.onlineDevices') }}</span>
             </div>
             <div class="text-xl font-bold text-white">{{ deviceStore.homeControlDevices.filter(d => d.status === 'online').length }}</div>
           </div>
           <div class="p-4 bg-slate-dark/50 rounded-lg border border-slate-mid/30">
             <div class="flex items-center gap-2 mb-2">
               <Clock class="w-3 h-3 text-slate-mid" />
-              <span class="text-sm text-slate-light">平均解析时间</span>
+              <span class="text-sm text-slate-light">{{ t('dashboard.avgResolutionTime') }}</span>
             </div>
             <div class="text-xl font-bold text-white">
               {{ formatDuration(conflictStore.stats.avgResolutionTime) }}

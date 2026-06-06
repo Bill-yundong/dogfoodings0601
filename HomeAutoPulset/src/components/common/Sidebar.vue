@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import {
   LayoutDashboard,
   AlertTriangle,
@@ -14,18 +15,19 @@ import {
   Home,
 } from 'lucide-vue-next';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
-const navItems = [
-  { path: '/', name: '监控仪表盘', icon: LayoutDashboard },
-  { path: '/conflicts', name: '冲突解析中心', icon: AlertTriangle },
-  { path: '/semantic', name: '语义对齐配置', icon: GitMerge },
-  { path: '/snapshots', name: '设备快照管理', icon: Database },
-  { path: '/rules', name: '规则引擎配置', icon: Settings2 },
-  { path: '/devices', name: '设备列表', icon: Cpu },
-  { path: '/settings', name: '系统设置', icon: Settings },
-];
+const navItems = computed(() => [
+  { path: '/', name: t('sidebar.dashboard'), icon: LayoutDashboard },
+  { path: '/conflicts', name: t('sidebar.conflictCenter'), icon: AlertTriangle },
+  { path: '/semantic', name: t('sidebar.semanticAlignment'), icon: GitMerge },
+  { path: '/snapshots', name: t('sidebar.snapshotManager'), icon: Database },
+  { path: '/rules', name: t('sidebar.ruleEngine'), icon: Settings2 },
+  { path: '/devices', name: t('sidebar.deviceList'), icon: Cpu },
+  { path: '/settings', name: t('sidebar.systemSettings'), icon: Settings },
+]);
 
 const isActive = (path: string) => {
   if (path === '/') return route.path === '/';
@@ -51,7 +53,7 @@ const systemStatus = computed(() => ({
         </div>
         <div>
           <h1 class="font-display text-lg font-bold text-white">HomeAutoPulse</h1>
-          <p class="text-xs text-slate-light">智能家庭控制中心</p>
+          <p class="text-xs text-slate-light">{{ t('sidebar.smartHomeControl') }}</p>
         </div>
       </div>
     </div>
@@ -63,7 +65,7 @@ const systemStatus = computed(() => ({
             <div class="w-2 h-2 rounded-full bg-success-green"></div>
             <div class="absolute inset-0 rounded-full bg-success-green animate-ping opacity-75"></div>
           </div>
-          <span class="text-xs text-success-green">系统运行正常</span>
+          <span class="text-xs text-success-green">{{ t('sidebar.systemStatus') }}</span>
         </div>
       </div>
 
@@ -85,15 +87,15 @@ const systemStatus = computed(() => ({
       </nav>
 
       <div class="mt-8 px-6">
-        <h3 class="text-xs font-semibold text-slate-light uppercase tracking-wider mb-3">快捷场景</h3>
+        <h3 class="text-xs font-semibold text-slate-light uppercase tracking-wider mb-3">{{ t('sidebar.quickScenes') }}</h3>
         <div class="space-y-2">
           <div class="flex items-center gap-3 px-3 py-2 bg-midnight/30 rounded-lg hover:bg-midnight/50 cursor-pointer transition-colors">
             <Shield class="w-4 h-4 text-alert-orange" />
-            <span class="text-sm text-slate-light">安防模式</span>
+            <span class="text-sm text-slate-light">{{ t('sidebar.securityMode') }}</span>
           </div>
           <div class="flex items-center gap-3 px-3 py-2 bg-midnight/30 rounded-lg hover:bg-midnight/50 cursor-pointer transition-colors">
             <Home class="w-4 h-4 text-info-blue" />
-            <span class="text-sm text-slate-light">回家模式</span>
+            <span class="text-sm text-slate-light">{{ t('sidebar.homeMode') }}</span>
           </div>
         </div>
       </div>
@@ -105,7 +107,7 @@ const systemStatus = computed(() => ({
           <span class="text-white font-semibold text-sm">管</span>
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-white truncate">管理员</p>
+          <p class="text-sm font-medium text-white truncate">{{ t('sidebar.admin') }}</p>
           <p class="text-xs text-slate-light truncate">admin@homeauto.local</p>
         </div>
       </div>
