@@ -86,7 +86,7 @@ export const checkMaterialCompatibility = async (
 
       compatibilityScore = Math.max(0, Math.min(100, compatibilityScore));
 
-      let reason = '';
+      let reason: string;
       if (isConflicting) {
         reason = `${material1.name}与${material2.name}材质风格冲突，不建议搭配`;
       } else if (isDirectComplementary) {

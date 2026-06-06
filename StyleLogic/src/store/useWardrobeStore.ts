@@ -1,7 +1,10 @@
 import { create } from 'zustand';
 import type { ClothingItem, OutfitPreset, WardrobeSnapshot, OutfitCombination } from '../types';
 import { wardrobeStore, outfitPresetStore, snapshotStore, initDB } from '../services/indexedDB';
-import { mockWardrobe } from '../data/mockData';
+import { generateMockWardrobe } from '../data/mockData';
+
+const DATA_VERSION = 'v2.1.0';
+const VERSION_KEY = 'stylelogic_data_version';
 
 interface WardrobeState {
   items: ClothingItem[];
@@ -45,12 +48,64 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       await initDB();
+      
+      const storedVersion = localStorage.getItem(VERSION_KEY);
       const existing = await wardrobeStore.getAll();
-      if (existing.length === 0) {
-        await wardrobeStore.bulkAdd(mockWardrobe);
-        set({ items: mockWardrobe });
+      
+      const needForceUpdate = storedVersion !== DATA_VERSION || existing.length === 0;
+      
+      if (needForceUpdate) {
+        await wardrobeStore.clear();
+        const newWardrobe = generateMockWardrobe(30);
+        await wardrobeStore.bulkAdd(newWardrobe);
+        localStorage.setItem(VERSION_KEY, DATA_VERSION);
+        set({ items: newWardrobe });
       } else {
-        set({ items: existing });
+        const hasCorrectData = existing.every(item => {
+          const name = item.name.toLowerCase();
+          const material = item.material.name.toLowerCase();
+          
+          if ((name.includes('皮') || name.includes('皮革')) && !material.includes('皮') && !material.includes('革')) return false;
+          if ((name.includes('毛') || name.includes('呢') || name.includes('羊绒')) && !material.includes('羊毛') && !material.includes('针织')) return false;
+          if (name.includes('牛仔') && !material.includes('牛仔')) return false;
+          if ((name.includes('丝') || name.includes('缎')) && !material.includes('真丝') && !material.includes('雪纺') && !material.includes('缎面')) return false;
+          if (name.includes('亚麻') && !material.includes('亚麻')) return false;
+          if (name.includes('棉') && !material.includes('棉')) return false;
+          if (name.includes('针织') && !material.includes('针织') && !material.includes('羊毛')) return false;
+          if (name.includes('雪纺') && !material.includes('雪纺')) return false;
+          
+          return true;
+        });
+        
+        if (!hasCorrectData) {
+          await wardrobeStore.clear();
+          const newWardrobe = generateMockWardrobe(30);
+          await wardrobeStore.bulkAdd(newWardrobe);
+          localStorage.setItem(VERSION_KEY, DATA_VERSION);
+          set({ items: newWardrobe });
+        } else {
+          const needAdditionalUpdate = existing.some(item => {
+            const name = item.name.toLowerCase();
+            const material = item.material.name.toLowerCase();
+            
+            if ((name.includes('风衣') || name.includes('大衣')) && !material.includes('羊毛')) return true;
+            if (name.includes('项链') || name.includes('耳环')) return true;
+            if (name.includes('发带') && !material.includes('真丝')) return true;
+            if (name.includes('链条') && material.includes('亚麻')) return true;
+            
+            return false;
+          });
+          
+          if (needAdditionalUpdate) {
+            await wardrobeStore.clear();
+            const newWardrobe = generateMockWardrobe(30);
+            await wardrobeStore.bulkAdd(newWardrobe);
+            localStorage.setItem(VERSION_KEY, DATA_VERSION);
+            set({ items: newWardrobe });
+          } else {
+            set({ items: existing });
+          }
+        }
       }
       set({ isLoading: false });
     } catch (error) {

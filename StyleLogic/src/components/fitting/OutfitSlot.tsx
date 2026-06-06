@@ -1,6 +1,5 @@
 import type { ClothingItem } from '../../types';
 import { Plus, X } from 'lucide-react';
-import { useState } from 'react';
 import { generatePlaceholderSVG } from '../../utils/imageUtils';
 
 interface OutfitSlotProps {
@@ -29,7 +28,6 @@ export const OutfitSlot = ({
   onRemove,
   disabled = false,
 }: OutfitSlotProps) => {
-  const [imageError, setImageError] = useState(false);
 
   const placeholderSvg = item
     ? generatePlaceholderSVG(item.color, item.material, slot, item.name)
@@ -54,22 +52,7 @@ export const OutfitSlot = ({
       {item ? (
         <div className="outfit-slot__item" onClick={disabled ? undefined : onAdd}>
           <div className="outfit-slot__item-image-wrapper">
-            {item.imageUrl && !imageError ? (
-              <>
-                <img
-                  src={item.imageUrl}
-                  alt={item.name}
-                  className="outfit-slot__item-image"
-                  onError={() => setImageError(true)}
-                />
-                <div
-                  className="outfit-slot__item-overlay"
-                  style={{
-                    background: `linear-gradient(135deg, ${item.color.hex}20 0%, ${item.color.hex}40 100%)`,
-                  }}
-                />
-              </>
-            ) : placeholderSvg ? (
+            {placeholderSvg ? (
               <img
                 src={placeholderSvg}
                 alt={item.name}
@@ -90,6 +73,12 @@ export const OutfitSlot = ({
                 </div>
               </div>
             )}
+            <div
+              className="outfit-slot__item-overlay"
+              style={{
+                background: `linear-gradient(135deg, ${item.color.hex}20 0%, ${item.color.hex}40 100%)`,
+              }}
+            />
             <div
               className="outfit-slot__color-dot"
               style={{ backgroundColor: item.color.hex }}

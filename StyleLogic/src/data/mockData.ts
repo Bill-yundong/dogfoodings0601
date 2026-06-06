@@ -1,4 +1,4 @@
-import type { ClothingItem, Product } from '../types';
+import type { ClothingItem, Product, ColorData, MaterialData } from '../types';
 import { allColors } from './colorDatabase';
 import { materialDatabase } from './materialDatabase';
 import { generateProductImageUrl } from '../utils/imageUtils';
@@ -6,6 +6,58 @@ import { generateProductImageUrl } from '../utils/imageUtils';
 const generateId = () => `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 const getRandomItem = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
+const colorKeywords: Record<string, string[]> = {
+  黑色: ['黑色', '黑', '炭黑', '纯黑', '玄色', '深色'],
+  白色: ['白色', '白', '米白', '象牙白', '本白', '米', '米色'],
+  米色: ['米色', '米', '卡其', '杏色', '驼色', '燕麦色', '浅棕', '卡其色'],
+  灰色: ['灰色', '灰', '银灰', '炭灰', '烟灰', '雾霾', '雾霾蓝'],
+  蓝色: ['蓝色', '蓝', '藏蓝', '海蓝', '牛仔蓝', '雾霾蓝', '海军蓝', '湖蓝', '宝石蓝', '孔雀蓝', '青色'],
+  红色: ['红色', '红', '正红', '酒红', '枣红', '橘红', '土橘', '橙色', '珊瑚橙'],
+  粉色: ['粉色', '粉', '樱花粉', '桃粉', '冰粉', '芭比粉', '亮粉', '桃色'],
+  绿色: ['绿色', '绿', '军绿', '墨绿', '草绿', '薄荷绿', '青色'],
+  棕色: ['棕色', '棕', '咖啡', '焦糖', '巧克力', '深棕', '浅棕', '驼色'],
+  紫色: ['紫色', '紫', '薰衣紫', '葡萄紫', '藕荷色', '香芋'],
+  黄色: ['黄色', '黄', '鹅黄', '金黄', '柠檬黄', '芥末黄', '金色'],
+  橙色: ['橙色', '橙', '橘色', '南瓜橙', '珊瑚橙', '土橘', '橘红'],
+  青色: ['青色', '青', '湖蓝', '宝石蓝', '孔雀蓝', '薄荷'],
+};
+
+const materialKeywords: Record<string, string[]> = {
+  纯棉: ['棉', '纯棉', '全棉', '精梳棉', 'T恤', '衬衫', '休闲裤', '运动裤', '修身'],
+  真丝: ['真丝', '丝绸', '丝', '缎面', '绸缎', '桑蚕丝', '发带', '丝巾', '吊带', '半身裙'],
+  羊毛: ['羊毛', '毛呢', '羊绒', '呢子', '羊羔毛', '毛织', '针织', '毛衣', '风衣', '大衣', '外套', '开衫', '针织衫', '针织帽'],
+  亚麻: ['亚麻', '麻', '苎麻', '棉麻', '西装'],
+  牛仔布: ['牛仔', '丹宁'],
+  皮革: ['皮革', '皮', '真皮', '牛皮', '羊皮', '人造革', 'PU', '机车', '乐福', '短靴', '高跟鞋', '手提包', '腰带', '夹克'],
+  雪纺: ['雪纺', '乔其纱', '碎花', '长裙', '飘逸'],
+  针织: ['针织', '毛衣', '线衫', '毛织', '运动裤', '修身'],
+  聚酯纤维: ['聚酯纤维', '涤纶', '化纤', '项链', '耳环', '装饰', '帆布', '双肩包', '休闲鞋', '运动鞋'],
+};
+
+const findColorFromName = (name: string): ColorData => {
+  for (const [colorName, keywords] of Object.entries(colorKeywords)) {
+    for (const keyword of keywords) {
+      if (name.includes(keyword)) {
+        const matchedColor = allColors.find(c => c.name === colorName);
+        if (matchedColor) return matchedColor;
+      }
+    }
+  }
+  return getRandomItem(allColors);
+};
+
+const findMaterialFromName = (name: string): MaterialData => {
+  for (const [materialName, keywords] of Object.entries(materialKeywords)) {
+    for (const keyword of keywords) {
+      if (name.includes(keyword)) {
+        const matchedMaterial = materialDatabase.find(m => m.name === materialName);
+        if (matchedMaterial) return matchedMaterial;
+      }
+    }
+  }
+  return getRandomItem(materialDatabase);
+};
 
 const clothingNames: Record<ClothingItem['category'], string[]> = {
   top: [
@@ -107,8 +159,8 @@ export const generateMockWardrobe = (count: number = 30): ClothingItem[] => {
     const category = getRandomItem(categories);
     const nameList = clothingNames[category];
     const name = nameList[i % nameList.length] || `${category} ${i + 1}`;
-    const color = getRandomItem(allColors);
-    const material = getRandomItem(materialDatabase);
+    const color = findColorFromName(name);
+    const material = findMaterialFromName(name);
     const seasonCount = Math.floor(Math.random() * 2) + 1;
     const itemSeasons = [...new Set(Array.from({ length: seasonCount }, () => getRandomItem(seasons)))];
     const occasionCount = Math.floor(Math.random() * 3) + 1;
@@ -184,10 +236,14 @@ export const generateMockProducts = (count: number = 20): Product[] => {
 
   for (let i = 0; i < count; i++) {
     const name = productNames[i % productNames.length];
-    const colorCount = Math.floor(Math.random() * 3) + 1;
-    const colors = [...new Set(Array.from({ length: colorCount }, () => getRandomItem(allColors)))];
-    const materialCount = Math.floor(Math.random() * 2) + 1;
-    const materials = [...new Set(Array.from({ length: materialCount }, () => getRandomItem(materialDatabase)))];
+    const primaryColor = findColorFromName(name);
+    const primaryMaterial = findMaterialFromName(name);
+    const colorCount = Math.floor(Math.random() * 2) + 1;
+    const otherColors = allColors.filter(c => c.id !== primaryColor.id);
+    const colors = [primaryColor, ...Array.from({ length: colorCount - 1 }, () => getRandomItem(otherColors))];
+    const materialCount = Math.floor(Math.random() * 2);
+    const otherMaterials = materialDatabase.filter(m => m.id !== primaryMaterial.id);
+    const materials = [primaryMaterial, ...Array.from({ length: materialCount }, () => getRandomItem(otherMaterials))];
     const seasonCount = Math.floor(Math.random() * 2) + 1;
     const productSeasons = [...new Set(Array.from({ length: seasonCount }, () => getRandomItem(seasons)))];
     const occasionCount = Math.floor(Math.random() * 3) + 1;

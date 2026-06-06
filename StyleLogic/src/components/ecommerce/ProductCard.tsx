@@ -1,6 +1,5 @@
 import type { Product, RecommendationResult } from '../../types';
 import { Heart, ShoppingCart, Eye, Star, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
 import { generatePlaceholderSVG } from '../../utils/imageUtils';
 
 interface ProductCardProps {
@@ -20,7 +19,6 @@ export const ProductCard = ({
   onAddToWishlist,
   showMatchScore = true,
 }: ProductCardProps) => {
-  const [imageError, setImageError] = useState(false);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return '#00A651';
@@ -37,32 +35,24 @@ export const ProductCard = ({
   const primaryColor = prod.colors?.[0];
   const primaryMaterial = prod.materials?.[0];
 
+  const categoryMap: Record<string, string> = {
+    '上衣': 'top',
+    '下装': 'bottom',
+    '外套': 'outerwear',
+    '连衣裙': 'dress',
+    '鞋履': 'shoes',
+    '配饰': 'accessory',
+  };
+  const mappedCategory = categoryMap[prod.category] || 'top';
+
   const placeholderSvg = primaryColor && primaryMaterial
-    ? generatePlaceholderSVG(primaryColor, primaryMaterial, 'top', prod.name)
+    ? generatePlaceholderSVG(primaryColor, primaryMaterial, mappedCategory, prod.name)
     : null;
 
   return (
     <div className="product-card">
       <div className="product-card__image-wrapper">
-        {prod.images && prod.images[0] && !imageError ? (
-          <>
-            <img
-              src={prod.images[0]}
-              alt={prod.name}
-              className="product-card__image"
-              loading="lazy"
-              onError={() => setImageError(true)}
-            />
-            <div
-              className="product-card__overlay"
-              style={{
-                background: primaryColor
-                  ? `linear-gradient(135deg, ${primaryColor.hex}20 0%, ${primaryColor.hex}40 100%)`
-                  : 'transparent',
-              }}
-            />
-          </>
-        ) : placeholderSvg ? (
+        {placeholderSvg ? (
           <img
             src={placeholderSvg}
             alt={prod.name}
@@ -76,6 +66,14 @@ export const ProductCard = ({
             </div>
           </div>
         )}
+        <div
+          className="product-card__overlay"
+          style={{
+            background: primaryColor
+              ? `linear-gradient(135deg, ${primaryColor.hex}20 0%, ${primaryColor.hex}40 100%)`
+              : 'transparent',
+          }}
+        />
         {hasDiscount && (
           <div className="product-card__discount-badge">-{discountPercent}%</div>
         )}

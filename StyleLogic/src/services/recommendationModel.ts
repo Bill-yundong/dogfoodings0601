@@ -332,7 +332,7 @@ export const matchProductToWardrobe = async (
         .slice(0, 3)
         .map((item) => item.id);
 
-      let reason = '';
+      let reason: string;
       if (matchScore >= 80) {
         reason = '完美匹配！这件商品非常适合您的个人色彩和衣橱风格';
       } else if (matchScore >= 60) {

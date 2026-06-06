@@ -1,6 +1,5 @@
 import type { ClothingItem } from '../../types';
 import { ShoppingBag, Eye, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 import { generatePlaceholderSVG } from '../../utils/imageUtils';
 
 interface ClothingCardProps {
@@ -24,7 +23,6 @@ export const ClothingCard = ({
   selected = false,
   matchScore,
 }: ClothingCardProps) => {
-  const [imageError, setImageError] = useState(false);
 
   const seasonLabels: Record<string, string> = {
     spring: '春',
@@ -41,29 +39,17 @@ export const ClothingCard = ({
       onClick={onClick}
     >
       <div className="clothing-card__image-wrapper">
-        {item.imageUrl && !imageError ? (
-          <>
-            <img
-              src={item.imageUrl}
-              alt={item.name}
-              className="clothing-card__image"
-              loading="lazy"
-              onError={() => setImageError(true)}
-            />
-            <div
-              className="clothing-card__overlay"
-              style={{
-                background: `linear-gradient(135deg, ${item.color.hex}20 0%, ${item.color.hex}40 100%)`,
-              }}
-            />
-          </>
-        ) : (
-          <img
-            src={placeholderSvg}
-            alt={item.name}
-            className="clothing-card__image clothing-card__image--placeholder"
-          />
-        )}
+        <img
+          src={placeholderSvg}
+          alt={item.name}
+          className="clothing-card__image clothing-card__image--placeholder"
+        />
+        <div
+          className="clothing-card__overlay"
+          style={{
+            background: `linear-gradient(135deg, ${item.color.hex}20 0%, ${item.color.hex}40 100%)`,
+          }}
+        />
         <div
           className="clothing-card__color-indicator"
           style={{ backgroundColor: item.color.hex }}

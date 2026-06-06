@@ -62,13 +62,12 @@ export const FittingRoom = ({ profile, onSavePreset }: FittingRoomProps) => {
   const [presetName, setPresetName] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
-  const selectedList = getSelectedItemsList();
-
   useEffect(() => {
-    if (selectedList.length > 0 && profile) {
+    const items = getSelectedItemsList();
+    if (items.length > 0 && profile) {
       analyzeCurrentOutfit(profile);
     }
-  }, [selectedItems, profile, analyzeCurrentOutfit]);
+  }, [selectedItems, profile, analyzeCurrentOutfit, getSelectedItemsList]);
 
   const handleGenerateRecommendations = () => {
     generateRecommendations(items, profile, selectedOccasion, selectedSeason, 5);

@@ -42,7 +42,8 @@ export const analyzePersonalColors = async (
       const skinHsl = (() => {
         const r = skinTone.r / 255, g = skinTone.g / 255, b = skinTone.b / 255;
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        let h = 0, s = 0, l = (max + min) / 2;
+        let h = 0, s = 0;
+        const l = (max + min) / 2;
         if (max !== min) {
           const d = max - min;
           s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
@@ -58,7 +59,8 @@ export const analyzePersonalColors = async (
       const hairHsl = (() => {
         const r = hairColor.r / 255, g = hairColor.g / 255, b = hairColor.b / 255;
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        let h = 0, s = 0, l = (max + min) / 2;
+        let h = 0, s = 0;
+        const l = (max + min) / 2;
         if (max !== min) {
           const d = max - min;
           s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
@@ -247,8 +249,8 @@ export const checkColorCompatibility = async (
       const accentMatch = profile.accentColors.some((c) => c.id === color.id);
       const neutralMatch = profile.neutralColors.some((c) => c.id === color.id);
 
-      let score = 50;
-      let reason = '';
+      let score: number;
+      let reason: string;
 
       if (dominantMatch) {
         score = 95;

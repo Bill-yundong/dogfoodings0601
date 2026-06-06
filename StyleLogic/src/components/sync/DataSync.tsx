@@ -39,7 +39,7 @@ export const DataSync = ({ showStatus = true }: DataSyncProps) => {
           case 'item_updated':
             console.log('🔄 同步: 衣橱更新物品 -> 电商系统', event.payload);
             break;
-          case 'preset_saved':
+          case 'preset_saved': {
             console.log('💾 同步: 保存穿搭预设 -> 电商系统', event.payload);
             const itemIds = (
               event.payload.outfit as {
@@ -50,6 +50,7 @@ export const DataSync = ({ showStatus = true }: DataSyncProps) => {
               console.log('🔗 相关商品ID:', itemIds);
             }
             break;
+          }
         }
       });
     },
@@ -168,5 +169,3 @@ export const DataSync = ({ showStatus = true }: DataSyncProps) => {
     </div>
   );
 };
-
-export { createSyncEvent };
