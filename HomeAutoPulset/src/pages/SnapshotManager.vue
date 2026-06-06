@@ -118,6 +118,21 @@ const cleanupOldData = async () => {
   }
 };
 
+const exportSnapshot = () => {
+  const data = {
+    snapshots: snapshotStore.snapshots,
+    exportTime: Date.now(),
+    version: '1.0.0',
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `snapshots-export-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
 const clearFilters = () => {
   searchQuery.value = '';
   deviceFilter.value = 'all';
@@ -250,7 +265,7 @@ onMounted(async () => {
         <Trash2 class="w-4 h-4 mr-2" />
         清理旧数据
       </button>
-      <button class="btn-secondary text-sm">
+      <button @click="exportSnapshot" class="btn-secondary text-sm">
         <Download class="w-4 h-4 mr-2" />
         导出快照
       </button>

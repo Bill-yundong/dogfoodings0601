@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import {
   Settings,
   Bell,
@@ -31,6 +31,11 @@ import { useSemanticStore } from '@/stores/semanticStore';
 import { useDeviceStore } from '@/stores/deviceStore';
 import MetricCard from '@/components/common/MetricCard.vue';
 import { formatDateTime } from '@/utils/dateUtils';
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/zh-tw';
+import 'dayjs/locale/en';
+import 'dayjs/locale/ja';
 
 const conflictStore = useConflictStore();
 const snapshotStore = useSnapshotStore();
@@ -148,6 +153,72 @@ const exportData = () => {
   URL.revokeObjectURL(url);
 };
 
+const fileInputRef = ref<HTMLInputElement | null>(null);
+
+const importData = () => {
+  fileInputRef.value?.click();
+};
+
+const handleFileImport = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target?.result as string);
+      if (confirm('确定要导入备份数据吗？这将覆盖现有数据。')) {
+        if (data.conflicts) conflictStore.conflicts = data.conflicts;
+        if (data.snapshots) snapshotStore.snapshots = data.snapshots;
+        if (data.devices) deviceStore.devices = data.devices;
+        if (data.settings) settings.value = data.settings;
+        localStorage.setItem('homeautopulse-settings', JSON.stringify(settings.value));
+        applyThemeColor(settings.value.appearance.accentColor);
+        applyLanguage(settings.value.system.language);
+        alert('数据导入成功！');
+      }
+    } catch (err) {
+      alert('导入失败：文件格式不正确');
+    }
+  };
+  reader.readAsText(file);
+  target.value = '';
+};
+
+const colorMap: Record<string, string> = {
+  purple: '#7C4DFF',
+  cyan: '#00E5FF',
+  green: '#00C853',
+  orange: '#FF6B35',
+};
+
+const applyThemeColor = (color: string) => {
+  const root = document.documentElement;
+  const hexColor = colorMap[color] || colorMap.purple;
+  root.style.setProperty('--accent-color', hexColor);
+  root.style.setProperty('--accent-color-rgb', hexToRgb(hexColor));
+};
+
+const hexToRgb = (hex: string) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+    : '124, 77, 255';
+};
+
+const applyLanguage = (lang: string) => {
+  const langMap: Record<string, string> = {
+    'zh-CN': 'zh-cn',
+    'zh-TW': 'zh-tw',
+    'en-US': 'en',
+    'ja-JP': 'ja',
+  };
+  const dayjsLang = langMap[lang] || 'zh-cn';
+  dayjs.locale(dayjsLang);
+  document.documentElement.lang = lang;
+};
+
 const resetSystem = () => {
   if (confirm('确定要重置系统吗？这将清除所有本地数据，此操作不可恢复！')) {
     if (confirm('请再次确认：您确定要重置所有数据吗？')) {
@@ -179,25 +250,44 @@ const runDiagnostics = async () => {
   alert('系统诊断完成，所有组件运行正常！');
 };
 
+watch(
+  () => settings.value.appearance.accentColor,
+  (newColor) => {
+    applyThemeColor(newColor);
+    localStorage.setItem('homeautopulse-settings', JSON.stringify(settings.value));
+  }
+);
+
+watch(
+  () => settings.value.system.language,
+  (newLang) => {
+    applyLanguage(newLang);
+    localStorage.setItem('homeautopulse-settings', JSON.stringify(settings.value));
+  }
+);
+
 onMounted(() => {
   startUptimeCounter();
   systemInfo.value.databaseSize = snapshotStore.stats?.storageUsed || 0;
+  applyThemeColor(settings.value.appearance.accentColor);
+  applyLanguage(settings.value.system.language);
 });
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
-          <Settings class="w-7 h-7 text-neon-purple" />
-          系统设置
-        </h1>
-        <p class="text-slate-light mt-1">
-          配置系统参数、通知、安全和外观选项
-        </p>
+  <div>
+    <div class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <Settings class="w-7 h-7 text-neon-purple" />
+            系统设置
+          </h1>
+          <p class="text-slate-light mt-1">
+            配置系统参数、通知、安全和外观选项
+          </p>
+        </div>
       </div>
-    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <MetricCard
@@ -728,7 +818,7 @@ onMounted(() => {
                 <Download class="w-4 h-4 mr-2 text-success-green" />
                 导出所有数据
               </button>
-              <button class="btn-secondary text-sm justify-start">
+              <button @click="importData" class="btn-secondary text-sm justify-start">
                 <Upload class="w-4 h-4 mr-2 text-cyber-teal" />
                 导入备份数据
               </button>
@@ -850,5 +940,13 @@ onMounted(() => {
         </div>
       </div>
     </div>
+    </div>
+    <input
+      ref="fileInputRef"
+      type="file"
+      accept=".json"
+      class="hidden"
+      @change="handleFileImport"
+    />
   </div>
 </template>
