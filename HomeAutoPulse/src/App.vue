@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useDeviceStore } from '@/stores/device'
 import { useConflictStore } from '@/stores/conflict'
 import { useSensorStore } from '@/stores/sensor'
 import { useSnapshotStore } from '@/stores/snapshot'
+import { useRuleStore } from '@/stores/rule'
 import { SensorSimulator, ConflictDetector, AsyncConflictQueue } from '@/engine/ConflictEngine'
 import { semanticAligner } from '@/engine/SemanticAligner'
 import type { SensorEvent } from '@/types'
@@ -28,6 +29,7 @@ const deviceStore = useDeviceStore()
 const conflictStore = useConflictStore()
 const sensorStore = useSensorStore()
 const snapshotStore = useSnapshotStore()
+const ruleStore = useRuleStore()
 
 const simulator = new SensorSimulator()
 const detector = new ConflictDetector(semanticAligner)
@@ -87,18 +89,27 @@ function toggleSimulation() {
     simulator.stop()
     isSimulating.value = false
   } else {
-    simulator.start(handleSensorEvent as any, 3000)
+    simulator.start(handleSensorEvent, 3000)
     isSimulating.value = true
   }
 }
 
 onMounted(() => {
   snapshotStore.loadSnapshots()
-  simulator.start(handleSensorEvent as any, 3000)
+  queue.setRules(ruleStore.rules)
+  simulator.start(handleSensorEvent, 3000)
   timeInterval = setInterval(() => {
     currentTime.value = new Date()
   }, 1000)
 })
+
+watch(
+  () => ruleStore.rules,
+  (newRules) => {
+    queue.setRules(newRules)
+  },
+  { deep: true }
+)
 
 onUnmounted(() => {
   simulator.stop()

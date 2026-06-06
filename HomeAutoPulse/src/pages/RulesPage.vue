@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRuleStore } from '@/stores/rule'
-import { Plus, ToggleLeft, ToggleRight, Trash2, Edit3, Save, X } from 'lucide-vue-next'
+import type { ConflictResolution } from '@/types'
+import { Plus, ToggleLeft, ToggleRight, Trash2, Edit3, Save, X, Check } from 'lucide-vue-next'
 
 const ruleStore = useRuleStore()
 const activeTab = ref<'rules' | 'templates' | 'mappings'>('rules')
 const editingRuleId = ref<string | null>(null)
 const showAddRule = ref(false)
+const toastMessage = ref('')
+const toastVisible = ref(false)
 
 const newRule = ref({
   name: '',
@@ -41,10 +44,10 @@ const operatorLabels: Record<string, string> = {
 }
 
 const templates = [
-  { name: '安防优先模式', desc: '安防系统事件始终优先于家居控制', strategy: 'priority_override', priority: 100 },
-  { name: '安全合并模式', desc: '安全类事件与家居事件合并执行', strategy: 'merge', priority: 90 },
-  { name: '舒适延迟模式', desc: '舒适类事件延迟执行，等待冲突消除', strategy: 'defer', priority: 50 },
-  { name: '节能条件模式', desc: '节能类事件根据条件判断是否执行', strategy: 'conditional', priority: 60 },
+  { name: '安防优先模式', desc: '安防系统事件始终优先于家居控制', strategy: 'priority_override' as ConflictResolution['strategy'], priority: 100 },
+  { name: '安全合并模式', desc: '安全类事件与家居事件合并执行', strategy: 'merge' as ConflictResolution['strategy'], priority: 90 },
+  { name: '舒适延迟模式', desc: '舒适类事件延迟执行，等待冲突消除', strategy: 'defer' as ConflictResolution['strategy'], priority: 50 },
+  { name: '节能条件模式', desc: '节能类事件根据条件判断是否执行', strategy: 'conditional' as ConflictResolution['strategy'], priority: 60 },
 ]
 
 function addRule() {
@@ -57,19 +60,35 @@ function addRule() {
     priority: newRule.value.priority,
     enabled: true,
   })
+  showToast(`规则「${newRule.value.name}」已添加`)
   showAddRule.value = false
   newRule.value = { name: '', strategy: 'priority_override', priority: 50, field: 'type', operator: 'eq', value: '' }
 }
 
+function showToast(msg: string) {
+  toastMessage.value = msg
+  toastVisible.value = true
+  setTimeout(() => {
+    toastVisible.value = false
+  }, 2000)
+}
+
 function applyTemplate(template: typeof templates[0]) {
+  const exists = ruleStore.rules.some(r => r.name === template.name)
+  if (exists) {
+    showToast(`模板「${template.name}」已存在`)
+    return
+  }
   ruleStore.addRule({
     id: `ar-tpl-${Date.now()}`,
     name: template.name,
-    conditions: [{ field: 'type', operator: 'eq', value: 'security' }],
-    strategy: template.strategy as any,
+    conditions: [{ field: 'type', operator: 'eq', value: template.strategy === 'priority_override' ? 'security' : template.strategy === 'merge' ? 'safety' : template.strategy === 'defer' ? 'comfort' : 'energy' }],
+    strategy: template.strategy,
     priority: template.priority,
     enabled: true,
   })
+  showToast(`模板「${template.name}」已应用`)
+  activeTab.value = 'rules'
 }
 
 function getWeightColor(w: number) {
@@ -249,5 +268,27 @@ function getWeightColor(w: number) {
         </div>
       </div>
     </div>
+
+    <Transition name="fade">
+      <div
+        v-if="toastVisible"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg glass-card border border-emerald-ok/30 text-emerald-ok text-sm flex items-center gap-2 z-50"
+      >
+        <Check class="w-4 h-4" />
+        {{ toastMessage }}
+      </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px);
+}
+</style>
