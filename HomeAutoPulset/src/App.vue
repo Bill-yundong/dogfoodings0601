@@ -7,16 +7,20 @@ import { useConflictStore } from '@/stores/conflictStore';
 import { useSemanticStore } from '@/stores/semanticStore';
 import { useSnapshotStore } from '@/stores/snapshotStore';
 import { useSensorSimulation } from '@/composables/useSensorSimulation';
+import { useSettings } from '@/composables/useSettings';
 
 const route = useRoute();
 const deviceStore = useDeviceStore();
 const conflictStore = useConflictStore();
 const semanticStore = useSemanticStore();
 const snapshotStore = useSnapshotStore();
+const { initSettings } = useSettings();
 
 const { sensorDataStream, isRunning, devices, startSimulation, stopSimulation, triggerManualData } = useSensorSimulation();
 
 onMounted(async () => {
+  initSettings();
+
   await conflictStore.init();
   await snapshotStore.init();
   conflictStore.setDevices(deviceStore.devices);

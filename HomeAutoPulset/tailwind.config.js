@@ -15,7 +15,7 @@ export default {
         'alert-orange': '#FF6B35',
         'success-green': '#00C853',
         'info-blue': '#2196F3',
-        'neon-purple': '#7C4DFF',
+        'neon-purple': 'var(--accent-color, #7C4DFF)',
         'cyber-teal': '#00E5FF',
         'danger-red': '#FF5252',
         'warning-amber': '#FFD740',
@@ -32,8 +32,8 @@ export default {
       },
       keyframes: {
         glow: {
-          '0%': { boxShadow: '0 0 5px rgba(124, 77, 255, 0.5)' },
-          '100%': { boxShadow: '0 0 20px rgba(124, 77, 255, 0.8), 0 0 30px rgba(124, 77, 255, 0.4)' },
+          '0%': { boxShadow: '0 0 5px rgba(var(--accent-color-rgb, 124, 77, 255), 0.5)' },
+          '100%': { boxShadow: '0 0 20px rgba(var(--accent-color-rgb, 124, 77, 255), 0.8), 0 0 30px rgba(var(--accent-color-rgb, 124, 77, 255), 0.4)' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0)' },

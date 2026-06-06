@@ -31,20 +31,17 @@ import { useSemanticStore } from '@/stores/semanticStore';
 import { useDeviceStore } from '@/stores/deviceStore';
 import MetricCard from '@/components/common/MetricCard.vue';
 import { formatDateTime } from '@/utils/dateUtils';
-import dayjs from 'dayjs';
-import 'dayjs/locale/zh-cn';
-import 'dayjs/locale/zh-tw';
-import 'dayjs/locale/en';
-import 'dayjs/locale/ja';
+import { useSettings } from '@/composables/useSettings';
 
 const conflictStore = useConflictStore();
 const snapshotStore = useSnapshotStore();
 const semanticStore = useSemanticStore();
 const deviceStore = useDeviceStore();
+const { settings: globalSettings, updateAccentColor, updateLanguage, updateSettings, colorMap } = useSettings();
 
 const activeSection = ref<string>('general');
 
-const settings = ref({
+const localSettings = ref({
   general: {
     autoResolveConflicts: true,
     autoCreateSnapshots: true,
@@ -69,18 +66,18 @@ const settings = ref({
     autoLock: true,
     loginAlerts: true,
   },
-  appearance: {
-    theme: 'dark',
-    accentColor: 'purple',
-    animations: true,
-    compactMode: false,
-    showFPS: false,
-  },
-  system: {
-    language: 'zh-CN',
-    timezone: 'Asia/Shanghai',
-    dateFormat: 'YYYY-MM-DD',
-    timeFormat: '24h',
+});
+
+const settings = computed({
+  get: () => ({
+    ...localSettings.value,
+    appearance: globalSettings.value.appearance,
+    system: globalSettings.value.system,
+  }),
+  set: (val) => {
+    localSettings.value.general = val.general;
+    localSettings.value.notifications = val.notifications;
+    localSettings.value.security = val.security;
   },
 });
 
@@ -172,10 +169,17 @@ const handleFileImport = (event: Event) => {
         if (data.conflicts) conflictStore.conflicts = data.conflicts;
         if (data.snapshots) snapshotStore.snapshots = data.snapshots;
         if (data.devices) deviceStore.devices = data.devices;
-        if (data.settings) settings.value = data.settings;
-        localStorage.setItem('homeautopulse-settings', JSON.stringify(settings.value));
-        applyThemeColor(settings.value.appearance.accentColor);
-        applyLanguage(settings.value.system.language);
+        if (data.settings) {
+          if (data.settings.general) localSettings.value.general = data.settings.general;
+          if (data.settings.notifications) localSettings.value.notifications = data.settings.notifications;
+          if (data.settings.security) localSettings.value.security = data.settings.security;
+          if (data.settings.appearance || data.settings.system) {
+            updateSettings({
+              appearance: data.settings.appearance,
+              system: data.settings.system,
+            });
+          }
+        }
         alert('数据导入成功！');
       }
     } catch (err) {
@@ -184,39 +188,6 @@ const handleFileImport = (event: Event) => {
   };
   reader.readAsText(file);
   target.value = '';
-};
-
-const colorMap: Record<string, string> = {
-  purple: '#7C4DFF',
-  cyan: '#00E5FF',
-  green: '#00C853',
-  orange: '#FF6B35',
-};
-
-const applyThemeColor = (color: string) => {
-  const root = document.documentElement;
-  const hexColor = colorMap[color] || colorMap.purple;
-  root.style.setProperty('--accent-color', hexColor);
-  root.style.setProperty('--accent-color-rgb', hexToRgb(hexColor));
-};
-
-const hexToRgb = (hex: string) => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
-    : '124, 77, 255';
-};
-
-const applyLanguage = (lang: string) => {
-  const langMap: Record<string, string> = {
-    'zh-CN': 'zh-cn',
-    'zh-TW': 'zh-tw',
-    'en-US': 'en',
-    'ja-JP': 'ja',
-  };
-  const dayjsLang = langMap[lang] || 'zh-cn';
-  dayjs.locale(dayjsLang);
-  document.documentElement.lang = lang;
 };
 
 const resetSystem = () => {
@@ -250,27 +221,9 @@ const runDiagnostics = async () => {
   alert('系统诊断完成，所有组件运行正常！');
 };
 
-watch(
-  () => settings.value.appearance.accentColor,
-  (newColor) => {
-    applyThemeColor(newColor);
-    localStorage.setItem('homeautopulse-settings', JSON.stringify(settings.value));
-  }
-);
-
-watch(
-  () => settings.value.system.language,
-  (newLang) => {
-    applyLanguage(newLang);
-    localStorage.setItem('homeautopulse-settings', JSON.stringify(settings.value));
-  }
-);
-
 onMounted(() => {
   startUptimeCounter();
   systemInfo.value.databaseSize = snapshotStore.stats?.storageUsed || 0;
-  applyThemeColor(settings.value.appearance.accentColor);
-  applyLanguage(settings.value.system.language);
 });
 </script>
 
@@ -685,7 +638,7 @@ onMounted(() => {
                   <button
                     v-for="color in accentColors"
                     :key="color.value"
-                    @click="settings.appearance.accentColor = color.value"
+                    @click="updateAccentColor(color.value)"
                     :class="[
                       'w-12 h-12 rounded-xl border-2 transition-all duration-200',
                       settings.appearance.accentColor === color.value
@@ -764,7 +717,11 @@ onMounted(() => {
                   <div class="text-white font-medium">语言</div>
                   <div class="text-sm text-slate-light mt-0.5">选择界面显示语言</div>
                 </div>
-                <select v-model="settings.system.language" class="input-field w-48">
+                <select
+                  :value="settings.system.language"
+                  @change="updateLanguage(($event.target as HTMLSelectElement).value)"
+                  class="input-field w-48"
+                >
                   <option v-for="lang in languages" :key="lang.value" :value="lang.value">
                     {{ lang.label }}
                   </option>

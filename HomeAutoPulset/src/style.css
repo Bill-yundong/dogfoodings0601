@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --accent-color: #7C4DFF;
+    --accent-color-rgb: 124, 77, 255;
+  }
+
   * {
     box-sizing: border-box;
   }
@@ -62,8 +67,8 @@
 
   .tech-grid-bg {
     background-image: 
-      linear-gradient(rgba(124, 77, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124, 77, 255, 0.03) 1px, transparent 1px);
+      linear-gradient(rgba(var(--accent-color-rgb, 124, 77, 255), 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--accent-color-rgb, 124, 77, 255), 0.03) 1px, transparent 1px);
     background-size: 20px 20px;
   }
 
@@ -88,7 +93,12 @@
 
   .data-card::before {
     content: '';
-    @apply absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-purple via-cyber-teal to-info-blue;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(to right, var(--accent-color, #7C4DFF), #00E5FF, #2196F3);
   }
 
   .btn-primary {
