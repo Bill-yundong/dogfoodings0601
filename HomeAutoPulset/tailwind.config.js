@@ -15,7 +15,7 @@ export default {
         'alert-orange': '#FF6B35',
         'success-green': '#00C853',
         'info-blue': '#2196F3',
-        'neon-purple': 'var(--accent-color, #7C4DFF)',
+        'neon-purple': 'rgb(var(--accent-color-rgb, 124, 77, 255) / <alpha-value>)',
         'cyber-teal': '#00E5FF',
         'danger-red': '#FF5252',
         'warning-amber': '#FFD740',

@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue';
+import { computed, ref, watch, onMounted, watchEffect } from 'vue';
 import { getHealthScoreColor, getHealthScoreBgColor } from '@/utils/conflictUtils';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   score: number;
@@ -17,11 +20,18 @@ const offset = computed(() => circumference.value - (displayScore.value / 100) *
 const scoreColor = computed(() => getHealthScoreColor(displayScore.value));
 const scoreBgClass = computed(() => getHealthScoreBgColor(displayScore.value));
 
+const accentColor = ref('#7C4DFF');
+
+watchEffect(() => {
+  const styles = getComputedStyle(document.documentElement);
+  accentColor.value = styles.getPropertyValue('--accent-color').trim() || '#7C4DFF';
+});
+
 const scoreLabel = computed(() => {
-  if (displayScore.value >= 90) return '优秀';
-  if (displayScore.value >= 70) return '良好';
-  if (displayScore.value >= 50) return '一般';
-  return '较差';
+  if (displayScore.value >= 90) return t('dashboard.excellent');
+  if (displayScore.value >= 70) return t('dashboard.good');
+  if (displayScore.value >= 50) return t('dashboard.average');
+  return t('dashboard.poor');
 });
 
 watch(() => props.score, (newScore) => {
@@ -79,7 +89,7 @@ onMounted(() => {
       <defs>
         <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" :style="{ stopColor: scoreColor === 'text-success-green' ? '#00C853' : scoreColor === 'text-warning-amber' ? '#FFD740' : scoreColor === 'text-alert-orange' ? '#FF6B35' : '#FF5252' }" />
-          <stop offset="100%" style="stopColor: #7C4DFF" />
+          <stop offset="100%" :style="{ stopColor: accentColor }" />
         </linearGradient>
       </defs>
 
@@ -101,7 +111,7 @@ onMounted(() => {
     <div class="absolute inset-0 flex flex-col items-center justify-center">
       <span :class="['font-display text-4xl font-bold', scoreColor]">{{ displayScore }}</span>
       <span class="text-sm text-slate-light mt-1">{{ scoreLabel }}</span>
-      <span class="text-xs text-slate-mid mt-0.5">系统健康度</span>
+      <span class="text-xs text-slate-mid mt-0.5">{{ t('dashboard.systemHealth') }}</span>
     </div>
   </div>
 </template>

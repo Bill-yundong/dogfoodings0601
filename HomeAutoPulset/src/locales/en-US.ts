@@ -100,6 +100,10 @@ export default {
     enabled: 'Enabled',
     disabled: 'Disabled',
     avgResolutionTime: 'Avg Resolution Time',
+    excellent: 'Excellent',
+    average: 'Average',
+    poor: 'Poor',
+    systemHealth: 'System Health',
   },
   conflictCenter: {
     title: 'Conflict Resolution Center',

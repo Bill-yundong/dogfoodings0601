@@ -100,6 +100,10 @@ export default {
     enabled: '已开启',
     disabled: '已关闭',
     avgResolutionTime: '平均解析时间',
+    excellent: '优秀',
+    average: '一般',
+    poor: '较差',
+    systemHealth: '系统健康度',
   },
   conflictCenter: {
     title: '冲突解析中心',

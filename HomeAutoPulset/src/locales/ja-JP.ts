@@ -100,6 +100,10 @@ export default {
     enabled: 'オン',
     disabled: 'オフ',
     avgResolutionTime: '平均解決時間',
+    excellent: '優秀',
+    average: '普通',
+    poor: '不良',
+    systemHealth: 'システム健全性',
   },
   conflictCenter: {
     title: 'コンフリクト解決センター',
