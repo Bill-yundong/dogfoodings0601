@@ -1,6 +1,7 @@
 import type { ClothingItem, Product } from '../types';
 import { allColors } from './colorDatabase';
 import { materialDatabase } from './materialDatabase';
+import { generateProductImageUrl } from '../utils/imageUtils';
 
 const generateId = () => `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -122,7 +123,7 @@ export const generateMockWardrobe = (count: number = 30): ClothingItem[] => {
       material,
       size: getRandomItem(['XS', 'S', 'M', 'L', 'XL', 'XXL']),
       brand: ['ZARA', 'H&M', 'UNIQLO', 'GUCCI', 'CHANEL', 'NIKE', 'ADIDAS'][Math.floor(Math.random() * 7)],
-      imageUrl: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(`${color.name} ${material.name} ${category} ${name}, professional fashion product photography, white background, high resolution, studio lighting, ${color.description}, ${material.description}`)}&image_size=square_hd`,
+      imageUrl: generateProductImageUrl(color, material, category, name),
       description: `高品质${material.name}${name}，${color.description}`,
       seasonality: itemSeasons,
       occasions: itemOccasions,
@@ -201,7 +202,9 @@ export const generateMockProducts = (count: number = 20): Product[] => {
       price: hasDiscount ? Math.floor(originalPrice * 0.7) : originalPrice,
       originalPrice: hasDiscount ? originalPrice : undefined,
       currency: 'CNY',
-      images: Array.from({ length: 4 }, (_, idx) => `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(`${colors[0]?.name || 'color'} ${materials[0]?.name || 'fabric'} ${name}, angle ${idx + 1}, professional fashion product photography, white background, high resolution, studio lighting, ${colors[0]?.description || ''}`)}&image_size=square_hd`),
+      images: colors[0] && materials[0]
+        ? Array.from({ length: 4 }, (_, idx) => generateProductImageUrl(colors[0], materials[0], 'dress', `${name} angle ${idx + 1}`))
+        : [],
       colors,
       materials,
       sizes: ['S', 'M', 'L', 'XL'],

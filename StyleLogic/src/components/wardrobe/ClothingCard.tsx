@@ -1,6 +1,7 @@
 import type { ClothingItem } from '../../types';
 import { ShoppingBag, Eye, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { generatePlaceholderSVG } from '../../utils/imageUtils';
 
 interface ClothingCardProps {
   item: ClothingItem;
@@ -25,15 +26,6 @@ export const ClothingCard = ({
 }: ClothingCardProps) => {
   const [imageError, setImageError] = useState(false);
 
-  const categoryIcons: Record<string, string> = {
-    top: '👕',
-    bottom: '👖',
-    outerwear: '🧥',
-    dress: '👗',
-    shoes: '👟',
-    accessory: '👜',
-  };
-
   const seasonLabels: Record<string, string> = {
     spring: '春',
     summer: '夏',
@@ -41,17 +33,7 @@ export const ClothingCard = ({
     winter: '冬',
   };
 
-  const getCategoryLabel = (category: string) => {
-    const labels: Record<string, string> = {
-      top: '上衣',
-      bottom: '下装',
-      outerwear: '外套',
-      dress: '连衣裙',
-      shoes: '鞋履',
-      accessory: '配饰',
-    };
-    return labels[category] || category;
-  };
+  const placeholderSvg = generatePlaceholderSVG(item.color, item.material, item.category, item.name);
 
   return (
     <div
@@ -76,22 +58,11 @@ export const ClothingCard = ({
             />
           </>
         ) : (
-          <div
-            className="clothing-card__placeholder"
-            style={{
-              background: `linear-gradient(135deg, ${item.color.hex}30 0%, ${item.color.hex}60 100%)`,
-            }}
-          >
-            <div className="clothing-card__placeholder-icon">
-              {categoryIcons[item.category]}
-            </div>
-            <div className="clothing-card__placeholder-text">
-              {item.color.name} · {item.material.name}
-            </div>
-            <div className="clothing-card__placeholder-category">
-              {getCategoryLabel(item.category)}
-            </div>
-          </div>
+          <img
+            src={placeholderSvg}
+            alt={item.name}
+            className="clothing-card__image clothing-card__image--placeholder"
+          />
         )}
         <div
           className="clothing-card__color-indicator"

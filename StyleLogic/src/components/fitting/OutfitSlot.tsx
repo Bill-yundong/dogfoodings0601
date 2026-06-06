@@ -1,6 +1,7 @@
 import type { ClothingItem } from '../../types';
 import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
+import { generatePlaceholderSVG } from '../../utils/imageUtils';
 
 interface OutfitSlotProps {
   slot: string;
@@ -29,6 +30,10 @@ export const OutfitSlot = ({
   disabled = false,
 }: OutfitSlotProps) => {
   const [imageError, setImageError] = useState(false);
+
+  const placeholderSvg = item
+    ? generatePlaceholderSVG(item.color, item.material, slot, item.name)
+    : null;
 
   return (
     <div className={`outfit-slot ${item ? 'outfit-slot--filled' : ''} ${disabled ? 'outfit-slot--disabled' : ''}`}>
@@ -64,6 +69,12 @@ export const OutfitSlot = ({
                   }}
                 />
               </>
+            ) : placeholderSvg ? (
+              <img
+                src={placeholderSvg}
+                alt={item.name}
+                className="outfit-slot__item-image outfit-slot__item-image--placeholder"
+              />
             ) : (
               <div
                 className="outfit-slot__item-placeholder"

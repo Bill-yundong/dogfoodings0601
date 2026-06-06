@@ -1,6 +1,7 @@
 import type { Product, RecommendationResult } from '../../types';
 import { Heart, ShoppingCart, Eye, Star, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
+import { generatePlaceholderSVG } from '../../utils/imageUtils';
 
 interface ProductCardProps {
   product: Product | RecommendationResult['product'];
@@ -36,6 +37,10 @@ export const ProductCard = ({
   const primaryColor = prod.colors?.[0];
   const primaryMaterial = prod.materials?.[0];
 
+  const placeholderSvg = primaryColor && primaryMaterial
+    ? generatePlaceholderSVG(primaryColor, primaryMaterial, 'top', prod.name)
+    : null;
+
   return (
     <div className="product-card">
       <div className="product-card__image-wrapper">
@@ -57,15 +62,14 @@ export const ProductCard = ({
               }}
             />
           </>
+        ) : placeholderSvg ? (
+          <img
+            src={placeholderSvg}
+            alt={prod.name}
+            className="product-card__image product-card__image--placeholder"
+          />
         ) : (
-          <div
-            className="product-card__placeholder"
-            style={{
-              background: primaryColor
-                ? `linear-gradient(135deg, ${primaryColor.hex}30 0%, ${primaryColor.hex}60 100%)`
-                : 'var(--bg-tertiary)',
-            }}
-          >
+          <div className="product-card__placeholder">
             <div className="product-card__placeholder-icon">👔</div>
             <div className="product-card__placeholder-text">
               {primaryColor?.name} · {primaryMaterial?.name}
