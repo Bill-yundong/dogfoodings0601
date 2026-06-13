@@ -12,6 +12,7 @@ import {
   Bell,
   Settings,
   RefreshCw,
+  X,
 } from 'lucide-vue-next';
 import { useSyncStore } from '../../stores/sync';
 import { checkAndInitializeData } from '../../utils/mock';
@@ -22,6 +23,8 @@ const syncStore = useSyncStore();
 
 const sidebarCollapsed = ref(false);
 const isSyncing = ref(false);
+const showNotifications = ref(false);
+const showSettings = ref(false);
 
 const menuItems = [
   { path: '/dashboard', label: '综合驾驶舱', icon: LayoutDashboard, submenu: [
@@ -180,13 +183,86 @@ onMounted(async () => {
           >
             <Database class="w-5 h-5 text-slate-400" />
           </button>
-          <button class="p-2 rounded-lg hover:bg-slate-700/50 transition-colors relative">
-            <Bell class="w-5 h-5 text-slate-400" />
-            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-          <button class="p-2 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <Settings class="w-5 h-5 text-slate-400" />
-          </button>
+          <div class="relative">
+            <button
+              @click="showNotifications = !showNotifications; showSettings = false"
+              class="p-2 rounded-lg hover:bg-slate-700/50 transition-colors relative"
+              :class="{ 'bg-slate-700/50': showNotifications }"
+            >
+              <Bell class="w-5 h-5 text-slate-400" />
+              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <div
+              v-if="showNotifications"
+              class="absolute right-0 top-full mt-2 w-80 bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl z-50 overflow-hidden"
+            >
+              <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
+                <h3 class="font-semibold text-slate-200">消息通知</h3>
+                <button @click="showNotifications = false" class="p-1 hover:bg-slate-700/50 rounded">
+                  <X class="w-4 h-4 text-slate-400" />
+                </button>
+              </div>
+              <div class="max-h-80 overflow-y-auto">
+                <div
+                  v-for="msg in syncStore.messages.slice(0, 5)"
+                  :key="msg.id"
+                  class="px-4 py-3 border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors"
+                >
+                  <div class="flex items-start gap-3">
+                    <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0"
+                      :class="msg.status === 'processed' ? 'bg-green-500' : msg.status === 'delivered' ? 'bg-yellow-500' : 'bg-blue-500'"
+                    ></div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm font-medium text-slate-200">{{ msg.type }}</div>
+                      <div class="text-xs text-slate-500 mt-0.5">{{ msg.timestamp }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="syncStore.messages.length === 0" class="px-4 py-8 text-center text-slate-500 text-sm">
+                  暂无通知消息
+                </div>
+              </div>
+              <div class="px-4 py-2 border-t border-slate-700/50">
+                <button class="w-full py-2 text-sm text-blue-400 hover:text-blue-300 transition-colors">
+                  查看全部通知
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="relative">
+            <button
+              @click="showSettings = !showSettings; showNotifications = false"
+              class="p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
+              :class="{ 'bg-slate-700/50': showSettings }"
+            >
+              <Settings class="w-5 h-5 text-slate-400" />
+            </button>
+            <div
+              v-if="showSettings"
+              class="absolute right-0 top-full mt-2 w-64 bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl z-50 overflow-hidden"
+            >
+              <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
+                <h3 class="font-semibold text-slate-200">系统设置</h3>
+                <button @click="showSettings = false" class="p-1 hover:bg-slate-700/50 rounded">
+                  <X class="w-4 h-4 text-slate-400" />
+                </button>
+              </div>
+              <div class="p-2">
+                <button class="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors">
+                  个人偏好设置
+                </button>
+                <button class="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors">
+                  通知设置
+                </button>
+                <button class="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors">
+                  数据备份与恢复
+                </button>
+                <button class="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors">
+                  关于系统
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 

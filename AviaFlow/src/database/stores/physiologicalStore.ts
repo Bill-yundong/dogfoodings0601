@@ -81,3 +81,19 @@ export async function getPhysiologicalStats(crewId: string, days: number = 7) {
   
   return stats;
 }
+
+export async function deletePhysiologicalDataBefore(date: string): Promise<number> {
+  const db = await getDB();
+  const tx = db.transaction('physiologicalData', 'readwrite');
+  const all = await tx.store.getAll();
+  const toDelete = all.filter(d => dayjs(d.timestamp).isBefore(dayjs(date)));
+  let deletedCount = 0;
+  
+  for (const item of toDelete) {
+    await tx.store.delete(item.id as any);
+    deletedCount++;
+  }
+  
+  await tx.done;
+  return deletedCount;
+}

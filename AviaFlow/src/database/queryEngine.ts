@@ -4,6 +4,7 @@ import { getPhysiologicalDataByCrew, getPhysiologicalStats, getLatestPhysiologic
 import { getHealthRecordsByCrew } from './stores/medicalStore';
 import { getFlightDutiesByCrew, getCrewFlightHours, getCrewTimezoneChanges } from './stores/scheduleStore';
 import { getFatigueAssessmentsByCrew, getLatestFatigueAssessment, getCrewFatigueStats } from './stores/fatigueStore';
+import { getDB } from './schema';
 import type { CrewMember } from '../types/crew';
 import type { PhysiologicalData } from '../types/medical';
 import type { FlightDuty } from '../types/schedule';
@@ -267,6 +268,33 @@ export async function exportCrewData(crewId: string, format: 'json' | 'csv' = 'j
   }
   
   return JSON.stringify(exportData, null, 2);
+}
+
+export async function exportAllData(): Promise<string> {
+  const db = await getDB();
+  const storeNames = [
+    'crewMembers',
+    'physiologicalData',
+    'healthRecords',
+    'medicalAlerts',
+    'flightDuties',
+    'schedulePlans',
+    'scheduleConflicts',
+    'fatigueAssessments',
+    'syncMessages',
+    'syncLogs',
+  ] as const;
+  
+  const allData: Record<string, any> = {
+    exportedAt: dayjs().toISOString(),
+    version: '1.0.0',
+  };
+  
+  for (const storeName of storeNames) {
+    allData[storeName] = await db.getAll(storeName);
+  }
+  
+  return JSON.stringify(allData, null, 2);
 }
 
 function convertToCSV(data: any[]): string {

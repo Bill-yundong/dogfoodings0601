@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import AppLayout from '../../components/layout/AppLayout.vue';
-import { getCrewCompleteProfile, getDatabaseStats, exportCrewData } from '../../database/queryEngine';
+import { getCrewCompleteProfile, getDatabaseStats, exportCrewData, exportAllData } from '../../database/queryEngine';
 import { checkAndInitializeData } from '../../utils/mock';
+import { clearAllData } from '../../database/schema';
 import type { CrewCompleteProfile } from '../../database/queryEngine';
-import { Database, User, FileText, Activity, Plane, Download, HardDrive, Clock, Calendar } from 'lucide-vue-next';
+import { Database, User, FileText, Activity, Plane, Download, HardDrive, Clock, Calendar, Trash2, AlertTriangle } from 'lucide-vue-next';
 import { getRiskColor } from '../../types/algorithm';
 import dayjs from 'dayjs';
 
@@ -12,7 +13,10 @@ const selectedCrew = ref<CrewCompleteProfile | null>(null);
 const dbStats = ref<any>(null);
 const allProfiles = ref<CrewCompleteProfile[]>([]);
 const isExporting = ref(false);
+const isClearing = ref(false);
 const activeTab = ref<'overview' | 'profiles' | 'storage'>('overview');
+const showClearConfirm = ref(false);
+const clearType = ref<'30d' | 'reset'>('30d');
 
 const loadData = async () => {
   await checkAndInitializeData();
@@ -30,7 +34,7 @@ const handleExport = async (crewId: string, format: 'json' | 'csv') => {
   isExporting.value = true;
   try {
     const data = await exportCrewData(crewId, format);
-    const blob = new Blob([data], { type: format === 'json' ? 'application/json' : 'text/csv' });
+    const blob = new Blob([data as any], { type: format === 'json' ? 'application/json' : 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -39,6 +43,45 @@ const handleExport = async (crewId: string, format: 'json' | 'csv') => {
     URL.revokeObjectURL(url);
   } finally {
     isExporting.value = false;
+  }
+};
+
+const handleExportAll = async () => {
+  isExporting.value = true;
+  try {
+    const data = await exportAllData();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `aviaflow-backup-${dayjs().format('YYYYMMDD-HHmmss')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } finally {
+    isExporting.value = false;
+  }
+};
+
+const confirmClear = (type: '30d' | 'reset') => {
+  clearType.value = type;
+  showClearConfirm.value = true;
+};
+
+const handleClear = async () => {
+  isClearing.value = true;
+  try {
+    if (clearType.value === '30d') {
+      const thirtyDaysAgo = dayjs().subtract(30, 'day').toISOString();
+      const { deletePhysiologicalDataBefore } = await import('../../database/stores/physiologicalStore');
+      await deletePhysiologicalDataBefore(thirtyDaysAgo);
+    } else if (clearType.value === 'reset') {
+      await clearAllData();
+      await checkAndInitializeData();
+    }
+    await loadData();
+  } finally {
+    isClearing.value = false;
+    showClearConfirm.value = false;
   }
 };
 
@@ -67,7 +110,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <AppLayout>
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
         <div>
@@ -371,7 +414,12 @@ onMounted(async () => {
                 <div class="font-medium text-slate-200">清理30天前的生理数据</div>
                 <div class="text-sm text-slate-500">保留最近30天的高频率生理监测数据</div>
               </div>
-              <button class="px-4 py-2 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 rounded-lg text-sm text-amber-400 transition-colors">
+              <button
+                @click="confirmClear('30d')"
+                :disabled="isClearing"
+                class="flex items-center gap-2 px-4 py-2 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 rounded-lg text-sm text-amber-400 transition-colors disabled:opacity-50"
+              >
+                <Trash2 class="w-4 h-4" />
                 清理
               </button>
             </div>
@@ -381,6 +429,7 @@ onMounted(async () => {
                 <div class="text-sm text-slate-500">将所有数据导出为 JSON 格式备份</div>
               </div>
               <button
+                @click="handleExportAll"
                 :disabled="isExporting"
                 class="flex items-center gap-2 px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm text-blue-400 transition-colors disabled:opacity-50"
               >
@@ -393,13 +442,71 @@ onMounted(async () => {
                 <div class="font-medium text-slate-200">重置数据库</div>
                 <div class="text-sm text-slate-500">清空所有数据并重新生成仿真数据</div>
               </div>
-              <button class="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-lg text-sm text-red-400 transition-colors">
+              <button
+                @click="confirmClear('reset')"
+                :disabled="isClearing"
+                class="flex items-center gap-2 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-lg text-sm text-red-400 transition-colors disabled:opacity-50"
+              >
+                <AlertTriangle class="w-4 h-4" />
                 重置
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      <div
+        v-if="showClearConfirm"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+        @click.self="showClearConfirm = false"
+      >
+        <div class="bg-slate-800 border border-slate-700/50 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center"
+              :class="clearType === 'reset' ? 'bg-red-600/20' : 'bg-amber-600/20'"
+            >
+              <AlertTriangle
+                class="w-6 h-6"
+                :class="clearType === 'reset' ? 'text-red-400' : 'text-amber-400'"
+              />
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-slate-100">
+                {{ clearType === 'reset' ? '重置数据库' : '清理数据确认' }}
+              </h3>
+              <p class="text-sm text-slate-500">此操作不可撤销</p>
+            </div>
+          </div>
+          
+          <p class="text-sm text-slate-300 mb-6">
+            {{ clearType === 'reset' 
+              ? '确定要重置所有数据吗？所有数据将被清空并重新生成仿真数据。'
+              : '确定要清理30天前的生理数据吗？清理后将无法恢复。'
+            }}
+          </p>
+          
+          <div class="flex gap-3 justify-end">
+            <button
+              @click="showClearConfirm = false"
+              :disabled="isClearing"
+              class="px-4 py-2 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 rounded-lg text-sm text-slate-300 transition-colors disabled:opacity-50"
+            >
+              取消
+            </button>
+            <button
+              @click="handleClear"
+              :disabled="isClearing"
+              class="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+              :class="clearType === 'reset' 
+                ? 'bg-red-600 hover:bg-red-500 text-white' 
+                : 'bg-amber-600 hover:bg-amber-500 text-white'"
+            >
+              <Trash2 v-if="isClearing" class="w-4 h-4 animate-spin" />
+              {{ isClearing ? '处理中...' : '确认' }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </AppLayout>
 </template>
