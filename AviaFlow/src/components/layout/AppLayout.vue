@@ -56,13 +56,23 @@ const menuItems = [
 const isActive = (path: string) => route.path.startsWith(path);
 
 const toggleNotifications = () => {
-  showSettings.value = false;
-  showNotifications.value = !showNotifications.value;
+  try {
+    showSettings.value = false;
+    showNotifications.value = !showNotifications.value;
+    console.log('[AppLayout] 通知面板:', showNotifications.value ? '打开' : '关闭');
+  } catch (e) {
+    console.error('[AppLayout] toggleNotifications 错误:', e);
+  }
 };
 
 const toggleSettings = () => {
-  showNotifications.value = false;
-  showSettings.value = !showSettings.value;
+  try {
+    showNotifications.value = false;
+    showSettings.value = !showSettings.value;
+    console.log('[AppLayout] 设置面板:', showSettings.value ? '打开' : '关闭');
+  } catch (e) {
+    console.error('[AppLayout] toggleSettings 错误:', e);
+  }
 };
 
 const closeAllPanels = () => {
@@ -71,6 +81,7 @@ const closeAllPanels = () => {
 };
 
 const handleOverlayClick = () => {
+  console.log('[AppLayout] 点击遮罩层，关闭所有面板');
   closeAllPanels();
 };
 
@@ -108,18 +119,32 @@ const reloadData = async () => {
 const unreadAlertCount = ref(3);
 
 const handleNotifItemClick = (msg: any) => {
-  console.log('点击通知:', msg);
-  closeAllPanels();
-  router.push('/medical/monitoring');
+  try {
+    console.log('[AppLayout] 点击通知项:', msg);
+    closeAllPanels();
+    router.push('/medical/monitoring');
+  } catch (e) {
+    console.error('[AppLayout] handleNotifItemClick 错误:', e);
+  }
 };
 
 const viewAllNotifications = () => {
-  closeAllPanels();
-  router.push('/medical/monitoring');
+  try {
+    console.log('[AppLayout] 点击查看全部通知');
+    closeAllPanels();
+    router.push('/medical/monitoring');
+  } catch (e) {
+    console.error('[AppLayout] viewAllNotifications 错误:', e);
+  }
 };
 
-const handleSettingsAction = (actionFn: () => void) => {
-  actionFn();
+const handleSettingsAction = (actionFn: () => void, label?: string) => {
+  try {
+    console.log('[AppLayout] 点击设置菜单项:', label || '未知');
+    actionFn();
+  } catch (e) {
+    console.error('[AppLayout] handleSettingsAction 错误:', e, '菜单项:', label);
+  }
 };
 
 const settingsMenuItems = [
@@ -290,101 +315,125 @@ const settingsMenuItems = [
       </main>
     </div>
 
-    <!-- 透明遮罩层: 覆盖整个视口，点击关闭弹窗；放在页面内容和弹窗之间，确保弹窗在上 -->
-    <div
-      v-if="ANY_PANEL_OPEN()"
-      class="fixed inset-0 w-full h-full z-[9998] bg-transparent"
-      @click="handleOverlayClick"
-    ></div>
+    <!-- ================================================================ -->
+    <!-- 遮罩层 + 弹窗：使用 Teleport 传送到 <body>，彻底避免 stacking context 问题 -->
+    <!-- ================================================================ -->
+    <Teleport to="body">
+      <!-- 透明遮罩层 (z-9998): 覆盖整个视口，点击关闭弹窗 -->
+      <div
+        v-if="ANY_PANEL_OPEN()"
+        class="fixed inset-0 z-[9998]"
+        style="pointer-events: auto;"
+        @click="handleOverlayClick"
+      ></div>
 
-    <!-- 通知面板 -->
-    <div
-      v-if="showNotifications"
-      class="fixed top-[72px] right-6 z-[9999] w-80"
-    >
-      <div class="w-full bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl overflow-hidden">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
-          <div class="flex items-center gap-2">
-            <Bell class="w-4 h-4 text-blue-400" />
-            <h3 class="font-semibold text-slate-200">消息通知</h3>
-            <span v-if="unreadAlertCount > 0" class="px-1.5 py-0.5 text-xs rounded-full bg-red-500/20 text-red-400">{{ unreadAlertCount }}</span>
+      <!-- 通知面板 (z-9999) -->
+      <div
+        v-if="showNotifications"
+        class="fixed z-[9999] w-80"
+        style="top: 72px; right: 24px; pointer-events: auto;"
+      >
+        <div class="w-full bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl overflow-hidden" style="pointer-events: auto;">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
+            <div class="flex items-center gap-2">
+              <Bell class="w-4 h-4 text-blue-400" />
+              <h3 class="font-semibold text-slate-200">消息通知</h3>
+              <span v-if="unreadAlertCount > 0" class="px-1.5 py-0.5 text-xs rounded-full bg-red-500/20 text-red-400">{{ unreadAlertCount }}</span>
+            </div>
+            <button
+              type="button"
+              @click="closeAllPanels"
+              class="p-1 hover:bg-slate-700/50 rounded transition-colors"
+              style="pointer-events: auto;"
+            >
+              <X class="w-4 h-4 text-slate-400" />
+            </button>
           </div>
-          <button @click="closeAllPanels" class="p-1 hover:bg-slate-700/50 rounded transition-colors">
-            <X class="w-4 h-4 text-slate-400" />
-          </button>
+          <div class="max-h-80 overflow-y-auto">
+            <button
+              v-for="msg in syncStore.messages.slice(0, 5)"
+              :key="msg.id"
+              type="button"
+              @click="handleNotifItemClick(msg)"
+              class="w-full px-4 py-3 border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors cursor-pointer text-left block"
+              style="pointer-events: auto;"
+            >
+              <div class="flex items-start gap-3">
+                <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0"
+                  :class="msg.status === 'processed' ? 'bg-green-500' : msg.status === 'delivered' ? 'bg-yellow-500' : 'bg-blue-500'"
+                ></div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-slate-200">{{ msg.type }}</div>
+                  <div class="text-xs text-slate-500 mt-0.5">{{ msg.timestamp }}</div>
+                </div>
+              </div>
+            </button>
+            <div v-if="syncStore.messages.length === 0" class="px-4 py-8 text-center text-slate-500 text-sm">
+              暂无通知消息
+            </div>
+          </div>
+          <div class="px-4 py-2 border-t border-slate-700/50">
+            <button
+              type="button"
+              @click="viewAllNotifications"
+              class="w-full py-2 text-sm text-blue-400 hover:text-blue-300 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+              style="pointer-events: auto;"
+            >
+              查看全部通知
+              <ExternalLink class="w-3 h-3" />
+            </button>
+          </div>
         </div>
-        <div class="max-h-80 overflow-y-auto">
-          <div
-            v-for="msg in syncStore.messages.slice(0, 5)"
-            :key="msg.id"
-            class="px-4 py-3 border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors cursor-pointer"
-            @click="handleNotifItemClick(msg)"
-          >
-            <div class="flex items-start gap-3">
-              <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0"
-                :class="msg.status === 'processed' ? 'bg-green-500' : msg.status === 'delivered' ? 'bg-yellow-500' : 'bg-blue-500'"
-              ></div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-slate-200">{{ msg.type }}</div>
-                <div class="text-xs text-slate-500 mt-0.5">{{ msg.timestamp }}</div>
+      </div>
+
+      <!-- 设置面板 (z-9999) -->
+      <div
+        v-if="showSettings"
+        class="fixed z-[9999] w-64"
+        style="top: 72px; right: 24px; pointer-events: auto;"
+      >
+        <div class="w-full bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl overflow-hidden" style="pointer-events: auto;">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
+            <div class="flex items-center gap-2">
+              <Settings class="w-4 h-4 text-slate-400" />
+              <h3 class="font-semibold text-slate-200">系统设置</h3>
+            </div>
+            <button
+              type="button"
+              @click="closeAllPanels"
+              class="p-1 hover:bg-slate-700/50 rounded transition-colors"
+              style="pointer-events: auto;"
+            >
+              <X class="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
+          <div class="p-2">
+            <button
+              v-for="(item, idx) in settingsMenuItems"
+              :key="idx"
+              type="button"
+              @click="handleSettingsAction(item.action, item.label)"
+              class="w-full px-3 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors flex items-center gap-3 cursor-pointer"
+              style="pointer-events: auto;"
+            >
+              <component :is="item.icon" class="w-4 h-4 text-slate-500 flex-shrink-0" />
+              <span class="flex-1">{{ item.label }}</span>
+              <ChevronRight class="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+            </button>
+          </div>
+          <div class="px-4 py-3 border-t border-slate-700/50">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-xs font-bold text-white">
+                管
+              </div>
+              <div class="flex-1">
+                <div class="text-sm font-medium text-slate-200">系统管理员</div>
+                <div class="text-xs text-slate-500">admin@aviaflow.com</div>
               </div>
             </div>
           </div>
-          <div v-if="syncStore.messages.length === 0" class="px-4 py-8 text-center text-slate-500 text-sm">
-            暂无通知消息
-          </div>
-        </div>
-        <div class="px-4 py-2 border-t border-slate-700/50">
-          <button
-            @click="viewAllNotifications"
-            class="w-full py-2 text-sm text-blue-400 hover:text-blue-300 transition-colors flex items-center justify-center gap-1"
-          >
-            查看全部通知
-            <ExternalLink class="w-3 h-3" />
-          </button>
         </div>
       </div>
-    </div>
-
-    <!-- 设置面板 -->
-    <div
-      v-if="showSettings"
-      class="fixed top-[72px] right-6 z-[9999] w-64"
-    >
-      <div class="w-full bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl overflow-hidden">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
-          <div class="flex items-center gap-2">
-            <Settings class="w-4 h-4 text-slate-400" />
-            <h3 class="font-semibold text-slate-200">系统设置</h3>
-          </div>
-          <button @click="closeAllPanels" class="p-1 hover:bg-slate-700/50 rounded transition-colors">
-            <X class="w-4 h-4 text-slate-400" />
-          </button>
-        </div>
-        <div class="p-2">
-          <button
-            v-for="(item, idx) in settingsMenuItems"
-            :key="idx"
-            @click="handleSettingsAction(item.action)"
-            class="w-full px-3 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors flex items-center gap-3"
-          >
-            <component :is="item.icon" class="w-4 h-4 text-slate-500" />
-            <span class="flex-1">{{ item.label }}</span>
-            <ChevronRight class="w-3.5 h-3.5 text-slate-600" />
-          </button>
-        </div>
-        <div class="px-4 py-3 border-t border-slate-700/50">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-xs font-bold text-white">
-              管
-            </div>
-            <div class="flex-1">
-              <div class="text-sm font-medium text-slate-200">系统管理员</div>
-              <div class="text-xs text-slate-500">admin@aviaflow.com</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </Teleport>
   </div>
 </template>
