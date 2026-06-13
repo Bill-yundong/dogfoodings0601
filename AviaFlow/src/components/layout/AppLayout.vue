@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   LayoutDashboard,
@@ -13,18 +13,29 @@ import {
   Settings,
   RefreshCw,
   X,
+  UserCog,
+  BellRing,
+  HardDrive,
+  Info,
+  ExternalLink,
 } from 'lucide-vue-next';
 import { useSyncStore } from '../../stores/sync';
+import { useMedicalStore } from '../../stores/medical';
 import { checkAndInitializeData } from '../../utils/mock';
 
 const route = useRoute();
 const router = useRouter();
 const syncStore = useSyncStore();
+const medicalStore = useMedicalStore();
 
 const sidebarCollapsed = ref(false);
 const isSyncing = ref(false);
 const showNotifications = ref(false);
 const showSettings = ref(false);
+const bellBtnRef = ref<HTMLElement | null>(null);
+const settingsBtnRef = ref<HTMLElement | null>(null);
+const notifPanelStyle = ref<Record<string, string>>({});
+const settingsPanelStyle = ref<Record<string, string>>({});
 
 const menuItems = [
   { path: '/dashboard', label: '综合驾驶舱', icon: LayoutDashboard, submenu: [
@@ -48,6 +59,61 @@ const menuItems = [
 
 const isActive = (path: string) => route.path.startsWith(path);
 
+const updatePanelPosition = (btnRef: HTMLElement | null, styleRef: typeof notifPanelStyle) => {
+  if (!btnRef) return;
+  const rect = btnRef.getBoundingClientRect();
+  styleRef.value = {
+    position: 'fixed',
+    top: `${rect.bottom + 8}px`,
+    right: `${window.innerWidth - rect.right}px`,
+    zIndex: '9999',
+  };
+};
+
+const toggleNotifications = () => {
+  showNotifications.value = !showNotifications.value;
+  showSettings.value = false;
+  if (showNotifications.value) {
+    nextTick(() => updatePanelPosition(bellBtnRef.value, notifPanelStyle));
+  }
+};
+
+const toggleSettings = () => {
+  showSettings.value = !showSettings.value;
+  showNotifications.value = false;
+  if (showSettings.value) {
+    nextTick(() => updatePanelPosition(settingsBtnRef.value, settingsPanelStyle));
+  }
+};
+
+const closeAllPanels = () => {
+  showNotifications.value = false;
+  showSettings.value = false;
+};
+
+const handleClickOutside = (e: MouseEvent) => {
+  const target = e.target as HTMLElement;
+  if (!target.closest('.avia-panel') && !target.closest('.avia-trigger')) {
+    closeAllPanels();
+  }
+};
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') closeAllPanels();
+};
+
+onMounted(async () => {
+  await syncStore.loadStats();
+  await syncStore.loadMessages();
+  document.addEventListener('click', handleClickOutside, true);
+  document.addEventListener('keydown', handleKeydown);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside, true);
+  document.removeEventListener('keydown', handleKeydown);
+});
+
 const triggerSync = async () => {
   isSyncing.value = true;
   await syncStore.syncAll();
@@ -65,10 +131,19 @@ const reloadData = async () => {
   }, 1000);
 };
 
-onMounted(async () => {
-  await syncStore.loadStats();
-  await syncStore.loadMessages();
-});
+const settingsMenuItems = [
+  { label: '个人偏好设置', icon: UserCog, action: () => { closeAllPanels(); } },
+  { label: '通知设置', icon: BellRing, action: () => { closeAllPanels(); } },
+  { label: '数据备份与恢复', icon: HardDrive, action: () => { closeAllPanels(); router.push('/database'); } },
+  { label: '关于系统', icon: Info, action: () => { closeAllPanels(); } },
+];
+
+const unreadAlertCount = ref(3);
+
+const viewAllNotifications = () => {
+  closeAllPanels();
+  router.push('/medical/monitoring');
+};
 </script>
 
 <template>
@@ -142,7 +217,7 @@ onMounted(async () => {
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0">
-      <header class="h-16 bg-slate-800/50 backdrop-blur-xl border-b border-slate-700/50 flex items-center px-6">
+      <header class="h-16 bg-slate-800/50 backdrop-blur-xl border-b border-slate-700/50 flex items-center px-6 relative z-10">
         <div class="flex items-center gap-4">
           <h1 class="text-lg font-semibold text-slate-200">
             {{ menuItems.find(m => isActive(m.path))?.label || '综合驾驶舱' }}
@@ -183,86 +258,23 @@ onMounted(async () => {
           >
             <Database class="w-5 h-5 text-slate-400" />
           </button>
-          <div class="relative">
-            <button
-              @click="showNotifications = !showNotifications; showSettings = false"
-              class="p-2 rounded-lg hover:bg-slate-700/50 transition-colors relative"
-              :class="{ 'bg-slate-700/50': showNotifications }"
-            >
-              <Bell class="w-5 h-5 text-slate-400" />
-              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-            <div
-              v-if="showNotifications"
-              class="absolute right-0 top-full mt-2 w-80 bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl z-50 overflow-hidden"
-            >
-              <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
-                <h3 class="font-semibold text-slate-200">消息通知</h3>
-                <button @click="showNotifications = false" class="p-1 hover:bg-slate-700/50 rounded">
-                  <X class="w-4 h-4 text-slate-400" />
-                </button>
-              </div>
-              <div class="max-h-80 overflow-y-auto">
-                <div
-                  v-for="msg in syncStore.messages.slice(0, 5)"
-                  :key="msg.id"
-                  class="px-4 py-3 border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors"
-                >
-                  <div class="flex items-start gap-3">
-                    <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0"
-                      :class="msg.status === 'processed' ? 'bg-green-500' : msg.status === 'delivered' ? 'bg-yellow-500' : 'bg-blue-500'"
-                    ></div>
-                    <div class="flex-1 min-w-0">
-                      <div class="text-sm font-medium text-slate-200">{{ msg.type }}</div>
-                      <div class="text-xs text-slate-500 mt-0.5">{{ msg.timestamp }}</div>
-                    </div>
-                  </div>
-                </div>
-                <div v-if="syncStore.messages.length === 0" class="px-4 py-8 text-center text-slate-500 text-sm">
-                  暂无通知消息
-                </div>
-              </div>
-              <div class="px-4 py-2 border-t border-slate-700/50">
-                <button class="w-full py-2 text-sm text-blue-400 hover:text-blue-300 transition-colors">
-                  查看全部通知
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="relative">
-            <button
-              @click="showSettings = !showSettings; showNotifications = false"
-              class="p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
-              :class="{ 'bg-slate-700/50': showSettings }"
-            >
-              <Settings class="w-5 h-5 text-slate-400" />
-            </button>
-            <div
-              v-if="showSettings"
-              class="absolute right-0 top-full mt-2 w-64 bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl z-50 overflow-hidden"
-            >
-              <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
-                <h3 class="font-semibold text-slate-200">系统设置</h3>
-                <button @click="showSettings = false" class="p-1 hover:bg-slate-700/50 rounded">
-                  <X class="w-4 h-4 text-slate-400" />
-                </button>
-              </div>
-              <div class="p-2">
-                <button class="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors">
-                  个人偏好设置
-                </button>
-                <button class="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors">
-                  通知设置
-                </button>
-                <button class="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors">
-                  数据备份与恢复
-                </button>
-                <button class="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors">
-                  关于系统
-                </button>
-              </div>
-            </div>
-          </div>
+          <button
+            ref="bellBtnRef"
+            @click.stop="toggleNotifications"
+            class="avia-trigger p-2 rounded-lg hover:bg-slate-700/50 transition-colors relative"
+            :class="{ 'bg-slate-700/50': showNotifications }"
+          >
+            <Bell class="w-5 h-5 text-slate-400" />
+            <span v-if="unreadAlertCount > 0" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <button
+            ref="settingsBtnRef"
+            @click.stop="toggleSettings"
+            class="avia-trigger p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
+            :class="{ 'bg-slate-700/50': showSettings }"
+          >
+            <Settings class="w-5 h-5 text-slate-400" />
+          </button>
         </div>
       </header>
 
@@ -270,5 +282,98 @@ onMounted(async () => {
         <slot></slot>
       </main>
     </div>
+
+    <Teleport to="body">
+      <div
+        v-if="showNotifications"
+        class="avia-panel"
+        :style="notifPanelStyle"
+      >
+        <div class="w-80 bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
+            <div class="flex items-center gap-2">
+              <Bell class="w-4 h-4 text-blue-400" />
+              <h3 class="font-semibold text-slate-200">消息通知</h3>
+              <span v-if="unreadAlertCount > 0" class="px-1.5 py-0.5 text-xs rounded-full bg-red-500/20 text-red-400">{{ unreadAlertCount }}</span>
+            </div>
+            <button @click.stop="closeAllPanels" class="p-1 hover:bg-slate-700/50 rounded transition-colors">
+              <X class="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
+          <div class="max-h-80 overflow-y-auto">
+            <div
+              v-for="msg in syncStore.messages.slice(0, 5)"
+              :key="msg.id"
+              class="px-4 py-3 border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors cursor-pointer"
+              @click.stop
+            >
+              <div class="flex items-start gap-3">
+                <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0"
+                  :class="msg.status === 'processed' ? 'bg-green-500' : msg.status === 'delivered' ? 'bg-yellow-500' : 'bg-blue-500'"
+                ></div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-slate-200">{{ msg.type }}</div>
+                  <div class="text-xs text-slate-500 mt-0.5">{{ msg.timestamp }}</div>
+                </div>
+              </div>
+            </div>
+            <div v-if="syncStore.messages.length === 0" class="px-4 py-8 text-center text-slate-500 text-sm">
+              暂无通知消息
+            </div>
+          </div>
+          <div class="px-4 py-2 border-t border-slate-700/50">
+            <button
+              @click.stop="viewAllNotifications"
+              class="w-full py-2 text-sm text-blue-400 hover:text-blue-300 transition-colors flex items-center justify-center gap-1"
+            >
+              查看全部通知
+              <ExternalLink class="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
+      <div
+        v-if="showSettings"
+        class="avia-panel"
+        :style="settingsPanelStyle"
+      >
+        <div class="w-64 bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
+            <div class="flex items-center gap-2">
+              <Settings class="w-4 h-4 text-slate-400" />
+              <h3 class="font-semibold text-slate-200">系统设置</h3>
+            </div>
+            <button @click.stop="closeAllPanels" class="p-1 hover:bg-slate-700/50 rounded transition-colors">
+              <X class="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
+          <div class="p-2">
+            <button
+              v-for="(item, idx) in settingsMenuItems"
+              :key="idx"
+              @click.stop="item.action()"
+              class="w-full px-3 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors flex items-center gap-3"
+            >
+              <component :is="item.icon" class="w-4 h-4 text-slate-500" />
+              {{ item.label }}
+            </button>
+          </div>
+          <div class="px-4 py-3 border-t border-slate-700/50">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-xs font-bold text-white">
+                管
+              </div>
+              <div class="flex-1">
+                <div class="text-sm font-medium text-slate-200">系统管理员</div>
+                <div class="text-xs text-slate-500">admin@aviaflow.com</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
