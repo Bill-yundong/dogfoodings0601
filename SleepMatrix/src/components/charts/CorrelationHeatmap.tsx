@@ -1,141 +1,159 @@
-import { Component, createMemo } from 'solid-js';
-import { BaseChart } from './BaseChart';
-import type { CorrelationMatrix } from '@/types/analysis';
-import type { EChartsOption } from 'echarts';
-import { cn } from '@/lib/utils';
+import { onMount, createEffect } from 'solid-js'
+import type { CorrelationResult } from '@/types'
 
-interface CorrelationHeatmapProps {
-  data: CorrelationMatrix | null;
-  height?: string;
-  class?: string;
+interface Props {
+  data: CorrelationResult
+  size?: number
 }
 
-const VARIABLE_LABELS: Record<string, string> = {
-  lightLux: '光照',
-  temperatureC: '温度',
-  noiseDb: '噪音',
-  humidity: '湿度',
-  sleepStage: '睡眠分期',
-  confidence: '置信度',
-  heartRate: '心率',
-  respiration: '呼吸',
-  deepSleepRatio: '深睡占比',
-  sleepScore: '睡眠评分',
-  remSleepRatio: 'REM比例',
-  sleepEfficiency: '睡眠效率',
-};
+const labels = ['光照', '温度', '噪音', '湿度']
 
-export const CorrelationHeatmap: Component<CorrelationHeatmapProps> = (props) => {
-  const option = createMemo((): EChartsOption => {
-    const matrix = props.data;
-    if (!matrix) {
-      return {
-        backgroundColor: 'transparent',
-        title: {
-          text: '加载中...',
-          left: 'center',
-          textStyle: { color: '#94A3B8' },
-        },
-      };
+export default function CorrelationHeatmap(props: Props) {
+  let canvasRef: HTMLCanvasElement | undefined
+
+  const getCorrelation = (row: number, col: number): number => {
+    if (row === col) return 1
+
+    const depthCorrelations = [
+      props.data.lightVsDepth,
+      props.data.tempVsDepth,
+      props.data.noiseVsDepth,
+      props.data.humidityVsDepth,
+    ]
+    const envCorrelations: Record<string, number> = {
+      '0-1': props.data.lightTemp,
+      '0-2': props.data.lightNoise,
+      '1-2': props.data.tempNoise,
     }
 
-    const variables = matrix.variables;
-    const labels = variables.map(v => VARIABLE_LABELS[v] ?? v);
-    const data: [number, number, number][] = [];
+    if (row === 3 || col === 3) {
+      return col === 3 ? depthCorrelations[row] : depthCorrelations[col]
+    }
 
-    const n = matrix.matrix.length;
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n; j++) {
-        const corr = matrix.matrix[i][j];
-        data.push([i, j, Number((corr.pearson * 100).toFixed(0))]);
+    const key = `${Math.min(row, col)}-${Math.max(row, col)}`
+    return envCorrelations[key] || 0
+  }
+
+  const colorForValue = (value: number): string => {
+    if (value >= 0) {
+      const alpha = Math.min(1, Math.abs(value))
+      return `rgba(239, 68, 68, ${0.2 + alpha * 0.7})`
+    } else {
+      const alpha = Math.min(1, Math.abs(value))
+      return `rgba(6, 182, 212, ${0.2 + alpha * 0.7})`
+    }
+  }
+
+  const draw = () => {
+    const canvas = canvasRef
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const dpr = window.devicePixelRatio || 1
+    const size = props.size || 280
+
+    canvas.width = size * dpr
+    canvas.height = size * dpr
+    ctx.scale(dpr, dpr)
+
+    ctx.clearRect(0, 0, size, size)
+
+    const padding = 50
+    const cellSize = (size - padding * 2) / 4
+    const gap = 2
+
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        const x = padding + j * (cellSize + gap)
+        const y = padding + i * (cellSize + gap)
+
+        const value = getCorrelation(i, j)
+
+        let color: string
+        if (i === j) {
+          color = 'rgba(99, 102, 241, 0.8)'
+        } else {
+          color = colorForValue(value)
+        }
+
+        const radius = 6
+        ctx.beginPath()
+        ctx.roundRect(x, y, cellSize, cellSize, radius)
+        ctx.fillStyle = color
+        ctx.fill()
+
+        if (i === j) {
+          ctx.fillStyle = '#fff'
+          ctx.font = '11px Sora, sans-serif'
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(labels[i], x + cellSize / 2, y + cellSize / 2)
+        } else {
+          ctx.fillStyle = '#fff'
+          ctx.font = 'bold 12px JetBrains Mono, monospace'
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(value.toFixed(2), x + cellSize / 2, y + cellSize / 2)
+        }
       }
     }
 
-    return {
-      backgroundColor: 'transparent',
-      tooltip: {
-        position: 'top',
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        borderColor: '#334155',
-        borderWidth: 1,
-        textStyle: { color: '#F1F5F9', fontSize: 12 },
-        formatter: (params: any) => {
-          const x = labels[params.data[0]];
-          const y = labels[params.data[1]];
-          const value = params.data[2];
-          return `${x} × ${y}<br/>相关系数: <strong>${value}%</strong>`;
-        },
-      },
-      grid: {
-        left: '15%',
-        right: '10%',
-        top: '10%',
-        bottom: '15%',
-      },
-      xAxis: {
-        type: 'category',
-        data: labels,
-        axisLabel: {
-          color: '#94A3B8',
-          fontSize: 11,
-          rotate: 45,
-        },
-        axisLine: { lineStyle: { color: '#475569' } },
-        splitArea: { show: true, areaStyle: { color: ['rgba(30, 41, 59, 0.3)', 'transparent'] } },
-      },
-      yAxis: {
-        type: 'category',
-        data: labels,
-        axisLabel: { color: '#94A3B8', fontSize: 11 },
-        axisLine: { lineStyle: { color: '#475569' } },
-        splitArea: { show: true, areaStyle: { color: ['rgba(30, 41, 59, 0.3)', 'transparent'] } },
-      },
-      visualMap: {
-        min: -100,
-        max: 100,
-        calculable: true,
-        orient: 'horizontal',
-        left: 'center',
-        bottom: '0%',
-        textStyle: { color: '#94A3B8' },
-        inRange: {
-          color: [
-            '#EF4444',
-            '#F59E0B',
-            '#10B981',
-            '#3B82F6',
-            '#8B5CF6',
-          ].reverse(),
-        },
-        formatter: (value: any) => `${value}%`,
-      },
-      series: [
-        {
-          name: '相关系数',
-          type: 'heatmap',
-          data,
-          label: {
-            show: true,
-            color: '#F1F5F9',
-            fontSize: 11,
-            formatter: (params: any) => `${params.data[2]}%`,
-          },
-          emphasis: {
-            itemStyle: {
-              shadowBlur: 10,
-              shadowColor: 'rgba(124, 58, 237, 0.5)',
-            },
-          },
-        },
-      ],
-    };
-  });
+    for (let i = 0; i < 4; i++) {
+      const x = padding + i * (cellSize + gap) + cellSize / 2
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+      ctx.font = '10px Sora, sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText(labels[i], x, padding - 10)
+    }
+
+    for (let i = 0; i < 4; i++) {
+      const y = padding + i * (cellSize + gap) + cellSize / 2
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+      ctx.font = '10px Sora, sans-serif'
+      ctx.textAlign = 'right'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(labels[i], padding - 10, y)
+    }
+
+    const legendY = size - 16
+    const legendWidth = 100
+    const legendHeight = 6
+    const legendX = (size - legendWidth) / 2
+
+    const gradient = ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0)
+    gradient.addColorStop(0, 'rgba(6, 182, 212, 0.9)')
+    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.2)')
+    gradient.addColorStop(1, 'rgba(239, 68, 68, 0.9)')
+
+    ctx.beginPath()
+    ctx.roundRect(legendX, legendY, legendWidth, legendHeight, 3)
+    ctx.fillStyle = gradient
+    ctx.fill()
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+    ctx.font = '9px Sora, sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText('-1', legendX - 14, legendY + 5)
+    ctx.textAlign = 'right'
+    ctx.fillText('+1', legendX + legendWidth + 14, legendY + 5)
+  }
+
+  onMount(() => {
+    draw()
+    const resizeObserver = new ResizeObserver(draw)
+    if (canvasRef) resizeObserver.observe(canvasRef)
+  })
+
+  createEffect(() => {
+    props.data
+    requestAnimationFrame(draw)
+  })
 
   return (
-    <BaseChart
-      option={option()}
-      height={props.height ?? '400px'}
-      class={props.class}
-    />
-  );
-};
+    <div class="w-full flex justify-center">
+      <canvas ref={canvasRef} style={{ width: `${props.size || 280}px`, height: `${props.size || 280}px` }} />
+    </div>
+  )
+}
