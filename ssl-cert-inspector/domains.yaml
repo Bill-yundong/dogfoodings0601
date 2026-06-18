@@ -1,0 +1,60 @@
+# SSL Certificate Inspection Configuration
+# Run with: python inspect.py --config domains.yaml
+
+# Domains to inspect. Each entry may override the default port.
+domains:
+  - name: www.google.com
+    port: 443
+  - name: github.com
+    port: 443
+  - name: www.cloudflare.com
+    port: 443
+  - name: expired.badssl.com      # serves an already-expired certificate (expired level)
+    port: 443
+  - name: self-signed.badssl.com  # self-signed cert, parsed regardless of verification
+    port: 443
+  - name: this-host-does-not-exist-12345.com  # demonstrates error handling
+    port: 443
+
+# Severity thresholds expressed in remaining days.
+# Levels produced:
+#   remaining < 0                    -> expired
+#   0 <= remaining <= critical       -> critical
+#   critical < remaining <= warning   -> warning
+#   remaining > warning               -> safe
+thresholds:
+  expired: 0
+  critical: 7
+  warning: 30
+
+# Inspection runtime options.
+inspection:
+  timeout: 10          # seconds per TLS connection
+  concurrency: 8       # number of domains inspected in parallel
+  max_retries: 2       # retry attempts for transient errors (resets/timeouts)
+  retry_backoff: 1.0   # seconds between retries (linear: backoff * attempt)
+
+# SQLite database for historical inspection records (trend tracing).
+database:
+  path: data/ssl_inspections.db
+
+# JSON report output.
+report:
+  path: reports/inspection_report.json
+
+# Email alerts. When smtp.enabled is false the alert is written to
+# alert.email_path as an .eml file (and printed) so you can still "see"
+# the alert message without a live mail server. Flip enabled to true and
+# fill in credentials to send real mail.
+alert:
+  email_path: reports/alert_email.eml
+  smtp:
+    enabled: false
+    host: smtp.example.com
+    port: 587
+    use_tls: true
+    username: alerts@example.com
+    password: change-me
+    from: ssl-alerts@example.com
+    to:
+      - admin@example.com
