@@ -1,6 +1,10 @@
 # 忽略系统文件
 .DS_Store
 Thumbs.db
+# __pycache__、.pyc、.db 就是项目里"会自动重新产生"或者"纯本地数据"的东西，没必要随着源代码一起搬到 git 仓库里
+__pycache__/
+*.pyc
+*.db
 
 # 忽略所有前端缓存和依赖
 node_modules/
