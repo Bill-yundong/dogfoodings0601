@@ -1,0 +1,6 @@
+# cron-health-auditor dependencies
+# The project uses only the Python standard library at runtime.
+# No third-party packages are required for the core functionality.
+
+# --- Dev / Test dependencies ---
+pytest>=7.0
