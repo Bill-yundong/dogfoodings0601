@@ -1,0 +1,14 @@
+{
+  "name": "i18n-sync-checker",
+  "version": "1.0.0",
+  "description": "Multi-language i18n resource sync checker for JSON locale files.",
+  "scripts": {
+    "check": "ts-node i18n-check.ts ./locales",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0"
+  }
+}

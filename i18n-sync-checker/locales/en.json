@@ -1,0 +1,18 @@
+{
+  "app": {
+    "title": "Welcome to {appName}",
+    "subtitle": "Your personal dashboard"
+  },
+  "user": {
+    "greeting": "Hello, {name}! You have {count} new messages.",
+    "profile": {
+      "edit": "Edit Profile",
+      "logout": "Logout"
+    }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Are you sure? {{action}} will be lost."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "app": {
+    "title": "{appName}へようこそ",
+    "subtitle": "あなたの個人ダッシュボード"
+  },
+  "user": {
+    "greeting": "こんにちは、{name}！新着メッセージがあります。",
+    "profile": {
+      "edit": "プロフィール編集",
+      "logout": "ログアウト"
+    }
+  },
+  "common": {
+    "save": "保存"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "app": {
+    "title": "欢迎使用 {appName}",
+    "subtitle": "您的个人仪表盘"
+  },
+  "user": {
+    "greeting": "你好，{name}！你有 {count} 条新消息。",
+    "profile": {
+      "edit": "编辑资料"
+    }
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确定吗？{action} 将丢失。"
+  },
+  "legacy": {
+    "oldFeature": "旧功能"
+  }
+}
