@@ -82,7 +82,7 @@ def main():
 
     logger.info("Generating tasks...")
     for task_id in range(args.tasks):
-        num_locks = random.randint(1, min(3, args.locks))
+        num_locks = random.randint(1, min(2, args.locks))
         task_queue.put((task_id, num_locks))
         if (task_id + 1) % 10 == 0:
             logger.info(f"  Generated {task_id + 1}/{args.tasks} tasks")
@@ -168,18 +168,27 @@ def main():
 
     detector_stats = detector.get_stats()
 
+    total_tasks = sum(results.values())
+    success_rate = (results["success"] / total_tasks * 100) if total_tasks > 0 else 0.0
+
     logger.info("=" * 80)
     logger.info("SIMULATION COMPLETE")
     logger.info("=" * 80)
     logger.info(f"Total time: {elapsed:.2f}s")
-    logger.info(f"Tasks processed: {sum(results.values())}/{args.tasks}")
-    logger.info(f"  - Success: {results['success']}")
-    logger.info(f"  - Failed: {results['failed']}")
+    logger.info(f"Tasks processed: {total_tasks}/{args.tasks}")
+    logger.info(f"  - Success:  {results['success']}")
+    logger.info(f"  - Failed:   {results['failed']}")
     logger.info(f"  - Rollback: {results['rollback']}")
+    logger.info(f"  - Success rate: {success_rate:.1f}%")
     logger.info("")
     logger.info("Deadlock detector stats:")
     logger.info(f"  - Detection scans: {detector_stats['detection_count']}")
     logger.info(f"  - Deadlocks found: {detector_stats['deadlock_count']}")
+    logger.info(f"  - Expired locks cleaned: {detector_stats['cleanup_count']}")
+    if detector_stats.get("rollback_counts"):
+        logger.info("  - Rollback distribution (anti-starvation):")
+        for pid, cnt in sorted(detector_stats["rollback_counts"].items()):
+            logger.info(f"      pid={pid}: rolled back {cnt} time(s)")
     logger.info("")
     logger.info("Worker summaries:")
     for worker_name, summary in sorted(worker_summaries.items()):

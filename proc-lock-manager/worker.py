@@ -5,7 +5,7 @@ import threading
 import time
 from typing import List, Optional
 
-from config import DEFAULT_LOCK_NAMES
+from config import DEFAULT_LOCK_NAMES, MAX_TASK_RETRIES, WAIT_TIMEOUT
 from lock_manager import LockManager
 from logger import get_logger, setup_worker_logger
 
@@ -69,49 +69,70 @@ def worker_process(
                 break
 
             task_id, num_locks = task
+            task_success = False
+            final_was_rollback = False
 
-            if lock_manager.is_rollback_requested():
-                logger.warning(
-                    f"[{process_name}] Rollback flag set before task {task_id}, "
-                    f"clearing flag and proceeding"
+            for attempt in range(MAX_TASK_RETRIES + 1):
+                if attempt > 0:
+                    reason = "rollback" if final_was_rollback else "timeout"
+                    logger.info(
+                        f"[{process_name}] Retrying task {task_id} after {reason} "
+                        f"(attempt {attempt + 1}/{MAX_TASK_RETRIES + 1})"
+                    )
+                    lock_manager.clear_rollback()
+                    final_was_rollback = False
+                    time.sleep(0.2 * attempt)
+                elif lock_manager.is_rollback_requested():
+                    lock_manager.clear_rollback()
+
+                logger.info(
+                    f"[{process_name}] Starting task {task_id}, "
+                    f"need {num_locks} lock(s)"
                 )
-                lock_manager.clear_rollback()
 
-            logger.info(
-                f"[{process_name}] Starting task {task_id}, "
-                f"need {num_locks} lock(s)"
-            )
+                selected_locks = random.sample(DEFAULT_LOCK_NAMES, num_locks)
+                random.shuffle(selected_locks)
 
-            selected_locks = random.sample(DEFAULT_LOCK_NAMES, num_locks)
-            random.shuffle(selected_locks)
+                acquired_locks = []
+                acquire_failed = False
+                rollback_this_attempt = False
 
-            acquired_locks = []
-            task_success = True
+                for lock_name in selected_locks:
+                    if lock_manager.is_rollback_requested():
+                        rollback_this_attempt = True
+                        acquire_failed = True
+                        break
 
-            for lock_name in selected_locks:
-                if lock_manager.is_rollback_requested():
-                    logger.warning(
-                        f"[{process_name}] Rollback requested during task {task_id}"
-                    )
-                    task_success = False
-                    rollback_count += 1
+                    handle = lock_manager.lock(lock_name, timeout=WAIT_TIMEOUT)
+                    if not handle.acquired:
+                        if lock_manager.is_rollback_requested():
+                            rollback_this_attempt = True
+                        acquire_failed = True
+                        break
+
+                    acquired_locks.append(handle)
+                    time.sleep(random.uniform(0.05, 0.15))
+
+                if acquire_failed:
+                    if not rollback_this_attempt:
+                        for handle in reversed(acquired_locks):
+                            try:
+                                handle.release()
+                            except Exception:
+                                pass
+                    acquired_locks = []
+
+                    if attempt < MAX_TASK_RETRIES:
+                        final_was_rollback = rollback_this_attempt
+                        logger.warning(
+                            f"[{process_name}] Task {task_id} attempt {attempt + 1} "
+                            f"failed ({'rollback' if rollback_this_attempt else 'timeout'}), "
+                            f"will retry"
+                        )
+                        continue
+                    final_was_rollback = rollback_this_attempt
                     break
 
-                handle = lock_manager.lock(lock_name, timeout=8.0)
-                if not handle.acquired:
-                    logger.warning(
-                        f"[{process_name}] Failed to acquire '{lock_name}' "
-                        f"for task {task_id}, aborting"
-                    )
-                    task_success = False
-                    break
-
-                acquired_locks.append(handle)
-
-                work_time = random.uniform(0.1, 0.5)
-                time.sleep(work_time)
-
-            if task_success and acquired_locks:
                 if random.random() < 0.15:
                     first_lock = acquired_locks[0]
                     logger.info(
@@ -123,32 +144,43 @@ def worker_process(
                         time.sleep(0.1)
                         reentrant_handle.release()
 
-                total_work = random.uniform(0.3, 1.0)
+                total_work = random.uniform(0.2, 0.5)
                 logger.info(
                     f"[{process_name}] Holding {len(acquired_locks)} lock(s) "
                     f"for task {task_id}, working for {total_work:.2f}s"
                 )
 
                 step_time = total_work / 5
+                rollback_during_work = False
                 for i in range(5):
                     if lock_manager.is_rollback_requested():
-                        logger.warning(
-                            f"[{process_name}] Rollback during work step "
-                            f"{i + 1}/5 for task {task_id}"
-                        )
-                        task_success = False
-                        rollback_count += 1
+                        rollback_during_work = True
                         break
                     time.sleep(step_time)
 
-            for handle in reversed(acquired_locks):
-                try:
-                    if handle.acquired:
-                        handle.release()
-                except Exception as e:
-                    logger.error(
-                        f"[{process_name}] Error releasing '{handle.lock_name}': {e}"
-                    )
+                if not rollback_during_work:
+                    for handle in reversed(acquired_locks):
+                        try:
+                            handle.release()
+                        except Exception as e:
+                            logger.error(
+                                f"[{process_name}] Error releasing "
+                                f"'{handle.lock_name}': {e}"
+                            )
+
+                if rollback_during_work:
+                    if attempt < MAX_TASK_RETRIES:
+                        final_was_rollback = True
+                        logger.warning(
+                            f"[{process_name}] Task {task_id} attempt {attempt + 1} "
+                            f"rolled back during work, will retry"
+                        )
+                        continue
+                    final_was_rollback = True
+                    break
+
+                task_success = True
+                break
 
             if task_success:
                 completed += 1
@@ -156,18 +188,21 @@ def worker_process(
                 logger.info(
                     f"[{process_name}] Completed task {task_id} successfully"
                 )
+            elif final_was_rollback:
+                rollback_count += 1
+                result_queue.put((task_id, "rollback", process_name))
+                logger.warning(
+                    f"[{process_name}] Task {task_id} exhausted all "
+                    f"{MAX_TASK_RETRIES + 1} attempts (rollback)"
+                )
+                lock_manager.clear_rollback()
             else:
-                if lock_manager.is_rollback_requested():
-                    rollback_count += 1
-                    result_queue.put((task_id, "rollback", process_name))
-                    logger.warning(
-                        f"[{process_name}] Task {task_id} rolled back, "
-                        f"clearing rollback flag for next task"
-                    )
-                    lock_manager.clear_rollback()
-                else:
-                    failed += 1
-                    result_queue.put((task_id, "failed", process_name))
+                failed += 1
+                result_queue.put((task_id, "failed", process_name))
+                logger.warning(
+                    f"[{process_name}] Task {task_id} exhausted all "
+                    f"{MAX_TASK_RETRIES + 1} attempts (timeout)"
+                )
 
         except multiprocessing.queues.Empty:
             continue
