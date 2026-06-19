@@ -1,0 +1,5 @@
+# The ETL pipeline has ZERO mandatory runtime dependencies:
+# encoding detection, CSV parsing and SQLite access all use the
+# Python standard library.  chardet is optional and only improves the
+# statistical accuracy of encoding auto-detection when it is available.
+# chardet>=5.0.0  # optional

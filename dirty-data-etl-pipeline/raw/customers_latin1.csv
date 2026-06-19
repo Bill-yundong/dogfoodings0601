@@ -1,0 +1,6 @@
+id,name,email,city,age,amount,remark
+C009,José García,jose@example.es,Madrid,38,210.75,cliente latino
+C010,François Dupont,francois@example.fr,Paris,42,150.00,très bon client
+C011,Müller GmbH,muller@example.de,Berlin,29,99.99,geschäftskunde
+C012,Søren Jensen,soren@example.dk,Copenhagen,25,40.00,null
+C013,stray,comma,row,has,extra,commas,here,oops

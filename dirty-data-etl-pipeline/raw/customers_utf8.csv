@@ -1,0 +1,10 @@
+id,name,email,city,age,amount,remark
+C001,"Alice, M.","alice@example.com",New York,32,100.5,"VIP client"
+C002,"Bob
+Junior",bob@example.com,Los Angeles,28,50.0,"Has multi-line
+address field"
+C002,"Robert Jr.",bob+dupe@example.com,LA,28,75.50,"duplicate of C002 - amount should sum"
+C003,null,null,N/A,NULL,-,
+C004,"Carol","carol@example.com",Chicago,,200.0,
+C005,"broken "quote" here",bad@example.com,Boston,40,10.0,"half quote inside unquoted-ish field"
+C006,"Dave","dave@example.com",Seattle,45,300.0,"clean row for reference"
