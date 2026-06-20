@@ -4,7 +4,8 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 
 import models
-from config import DEADLOCK_DETECT_INTERVAL, LOCK_TIMEOUT
+from config import DEADLOCK_DETECT_INTERVAL
+from lock_manager import LockManager
 from logger import get_logger
 
 
@@ -18,6 +19,7 @@ class DeadlockDetector:
         self._deadlock_count = 0
         self._cleanup_count = 0
         self._rollback_counts: Dict[int, int] = defaultdict(int)
+        self._cleaner = LockManager(process_name="LockCleaner", priority=0)
 
     def start(self):
         if self._thread and self._thread.is_alive():
@@ -55,15 +57,9 @@ class DeadlockDetector:
             self._stop_event.wait(DEADLOCK_DETECT_INTERVAL)
 
     def _cleanup_expired_locks(self):
-        expired = models.cleanup_expired_locks(LOCK_TIMEOUT)
+        expired = self._cleaner.cleanup_expired()
         if expired:
             self._cleanup_count += len(expired)
-            for e in expired:
-                self.logger.warning(
-                    f"HEARTBEAT TIMEOUT: Cleaned up expired lock '{e['lock_name']}' "
-                    f"from {e['holder_name']} (pid={e['holder_pid']}) - "
-                    f"process may have died"
-                )
 
     def _build_wait_for_graph(self) -> Dict[int, Set[Tuple[int, str]]]:
         """构建等待图: waiter_pid -> set of (holder_pid, lock_name)"""

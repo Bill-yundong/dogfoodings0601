@@ -82,7 +82,7 @@ def main():
 
     logger.info("Generating tasks...")
     for task_id in range(args.tasks):
-        num_locks = random.randint(1, min(2, args.locks))
+        num_locks = random.randint(1, min(3, args.locks))
         task_queue.put((task_id, num_locks))
         if (task_id + 1) % 10 == 0:
             logger.info(f"  Generated {task_id + 1}/{args.tasks} tasks")
