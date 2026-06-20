@@ -1,0 +1,11 @@
+{
+  "name": "conflict-demo",
+  "version": "1.0.0",
+  "description": "Demo project with version conflicts for testing",
+  "dependencies": {
+    "express": "^4.17.0",
+    "debug": "^4.0.0",
+    "chalk": "^3.0.0",
+    "ansi-styles": "^3.2.0"
+  }
+}

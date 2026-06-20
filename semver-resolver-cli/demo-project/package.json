@@ -1,0 +1,13 @@
+{
+  "name": "demo-project",
+  "version": "1.0.0",
+  "description": "Demo project for testing semver dependency resolver",
+  "dependencies": {
+    "express": "^4.18.0",
+    "lodash": "^4.17.0",
+    "chalk": "^4.0.0",
+    "async": "~2.6.0",
+    "circular-a": "^1.0.0",
+    "diamond-top": "^1.0.0"
+  }
+}

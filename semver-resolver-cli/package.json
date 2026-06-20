@@ -1,0 +1,20 @@
+{
+  "name": "semver-resolver-cli",
+  "version": "1.0.0",
+  "description": "Semantic version dependency resolver and conflict resolution CLI tool",
+  "main": "dist/resolve.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node resolve.ts",
+    "resolve": "ts-node resolve.ts"
+  },
+  "dependencies": {
+    "semver": "^7.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/semver": "^7.5.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
