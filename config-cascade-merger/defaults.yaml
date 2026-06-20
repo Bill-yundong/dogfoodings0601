@@ -1,0 +1,26 @@
+# YAML 层默认配置（优先级 2/4，高于内置默认值，低于环境变量和 CLI 参数）
+port: 8888
+host: "127.0.0.1"
+logLevel: "warn"
+
+database:
+  host: "db.internal.example.com"
+  port: 5432
+  name: "production_db"
+  username: "app_user"
+  password: "yaml_defined_password"
+  pool:
+    min: 5
+    max: 50
+
+features:
+  auth: true
+  cache: true
+  rateLimit: true
+
+allowedOrigins:
+  - "https://app.example.com"
+  - "https://admin.example.com"
+
+rateLimitWindow: 60
+rateLimitMax: 500
