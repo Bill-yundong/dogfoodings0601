@@ -85,7 +85,7 @@ class TracerouteProbe:
             if ip_matches:
                 ip = ip_matches[0]
 
-            rtt_pattern = r"(\d+(?:\.\d+)?)\s*ms"
+            rtt_pattern = r"(-?\d+(?:\.\d+)?)\s*ms"
             rtt_matches = re.findall(rtt_pattern, line)
             rtt_values = [float(r) for r in rtt_matches]
 
