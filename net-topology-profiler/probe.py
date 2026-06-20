@@ -13,6 +13,7 @@ from topology.tracer import TracerouteProbe
 from topology.builder import TopologyBuilder
 from topology.analyzer import LinkQualityAnalyzer
 from topology.visualizer import TopologyVisualizer
+from topology.monitor import TopologyMonitor
 
 
 def cmd_scan(args):
@@ -266,6 +267,79 @@ def cmd_analyze(args):
     return 0
 
 
+def cmd_monitor(args):
+    subnet = args.subnet
+    interval = args.interval
+    rounds = args.rounds
+    history_path = args.history or "monitor_history.json"
+    max_workers = args.max_workers
+    ping_count = args.ping_count
+    timeout = args.timeout
+    max_hops = args.max_hops
+
+    print(f"\n{'='*60}")
+    print(f"  Network Topology Monitor (Periodic Inspection)")
+    print(f"{'='*60}")
+    print(f"\n[*] Subnet: {subnet}")
+    print(f"[*] Rounds: {rounds}")
+    print(f"[*] Interval: {interval}s")
+    print(f"[*] History file: {history_path}")
+    print(f"[*] Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print()
+
+    scanner = NetworkScanner(max_workers=max_workers, timeout=timeout, packets=ping_count)
+    tracer = TracerouteProbe(
+        max_hops=max_hops, probes_per_hop=ping_count, timeout=timeout, max_workers=max_workers
+    )
+
+    monitor = TopologyMonitor(
+        scanner=scanner,
+        tracer=tracer,
+        subnet=subnet,
+        interval=interval,
+        rounds=rounds,
+        history_path=history_path,
+    )
+
+    def on_round_complete(monitor_round):
+        r = monitor_round.round_number
+        print(f"\n  [Round {r}/{rounds}] {monitor_round.timestamp}")
+        print(f"    Alive hosts: {monitor_round.alive_host_count}")
+        print(f"    Nodes: {len(monitor_round.nodes)}  Links: {len(monitor_round.links)}")
+        print(f"    Duration: {monitor_round.duration_seconds:.2f}s")
+        ch = monitor_round.changes
+        if ch.new_nodes:
+            print(f"    + New nodes: {', '.join(ch.new_nodes)}")
+        if ch.disappeared_nodes:
+            print(f"    - Disappeared nodes: {', '.join(ch.disappeared_nodes)}")
+        if ch.new_links:
+            print(f"    + New links: {', '.join(ch.new_links)}")
+        if ch.disappeared_links:
+            print(f"    - Disappeared links: {', '.join(ch.disappeared_links)}")
+        if monitor_round.links:
+            avg_score = sum(l.quality_score for l in monitor_round.links) / len(monitor_round.links)
+            print(f"    Avg link quality: {avg_score:.2f}")
+        print(f"    -> Appended to {history_path}")
+        if r < rounds:
+            remaining = max(0, interval - monitor_round.duration_seconds)
+            print(f"    Next round in {remaining:.1f}s ...")
+
+    print("[*] Starting periodic monitoring...\n")
+
+    monitor.run(on_round_complete=on_round_complete)
+
+    print("\n" + "=" * 60)
+    print("  Monitoring complete. Generating trend summary...")
+    print("=" * 60)
+
+    monitor.print_trend_summary()
+
+    print(f"\n[*] History saved to: {history_path}")
+    print(f"[*] End time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="probe.py",
@@ -275,6 +349,7 @@ def main():
 Examples:
   python probe.py scan --subnet 192.168.1.0/24
   python probe.py scan --subnet 10.0.0.0/24 --output my_topology.json
+  python probe.py monitor --subnet 192.168.1.0/24 --interval 60 --rounds 5
   python probe.py view topology_192.168.1.0_24.json
   python probe.py analyze topology_192.168.1.0_24.json
         """,
@@ -296,6 +371,16 @@ Examples:
     analyze_parser = subparsers.add_parser("analyze", help="Detailed quality analysis of a topology file")
     analyze_parser.add_argument("file", help="Path to topology JSON file")
 
+    monitor_parser = subparsers.add_parser("monitor", help="Run periodic inspection over multiple rounds")
+    monitor_parser.add_argument("--subnet", "-s", required=True, help="Subnet to monitor (e.g., 192.168.1.0/24)")
+    monitor_parser.add_argument("--interval", type=int, default=60, help="Seconds between rounds (default: 60)")
+    monitor_parser.add_argument("--rounds", type=int, default=5, help="Number of inspection rounds (default: 5)")
+    monitor_parser.add_argument("--history", help="History JSON file path (default: monitor_history.json)")
+    monitor_parser.add_argument("--max-workers", type=int, default=30, help="Max concurrent threads (default: 30)")
+    monitor_parser.add_argument("--ping-count", type=int, default=3, help="Number of ping probes (default: 3)")
+    monitor_parser.add_argument("--timeout", type=int, default=2, help="Timeout per probe in seconds (default: 2)")
+    monitor_parser.add_argument("--max-hops", type=int, default=30, help="Max traceroute hops (default: 30)")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -308,6 +393,8 @@ Examples:
         return cmd_view(args)
     elif args.command == "analyze":
         return cmd_analyze(args)
+    elif args.command == "monitor":
+        return cmd_monitor(args)
     else:
         parser.print_help()
         return 1
