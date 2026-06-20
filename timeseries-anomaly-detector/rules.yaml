@@ -1,0 +1,14 @@
+window_size: 20
+window_step: 1
+sigma_threshold: 3
+min_alarm_windows: 3
+recovery_windows: 5
+timestamp_column: timestamp
+
+metrics:
+  - name: cpu
+    sigma_threshold: 3
+  - name: memory
+    sigma_threshold: 2.5
+  - name: latency
+    sigma_threshold: 3

@@ -1,0 +1,115 @@
+{
+  "config": {
+    "window_size": 20,
+    "window_step": 1,
+    "sigma_threshold": 3,
+    "min_alarm_windows": 3,
+    "recovery_windows": 5
+  },
+  "summary": {
+    "total_metrics": 3,
+    "metrics_with_alarms": 3,
+    "total_alarm_events": 8
+  },
+  "metrics": {
+    "cpu": {
+      "final_state": "NORMAL",
+      "alarm_events": [
+        {
+          "type": "ALARM_TRIGGERED",
+          "timestamp": "2024-01-01T01:32:00.000000",
+          "window_idx": 72,
+          "value": 49.29794690612265,
+          "z_score": 3.076572668281969
+        },
+        {
+          "type": "ALARM_CLEARED",
+          "timestamp": "2024-01-01T01:37:00.000000",
+          "window_idx": 77,
+          "value": 50.26105527217989
+        }
+      ],
+      "anomaly_intervals": [
+        {
+          "start": "2024-01-01T01:32:00.000000",
+          "end": "2024-01-01T01:37:00.000000",
+          "duration_windows": 5
+        }
+      ],
+      "total_anomaly_candidates": 8,
+      "total_windows": 100
+    },
+    "latency": {
+      "final_state": "NORMAL",
+      "alarm_events": [
+        {
+          "type": "ALARM_TRIGGERED",
+          "timestamp": "2024-01-01T00:57:00.000000",
+          "window_idx": 37,
+          "value": 220.0276049348116,
+          "z_score": 3.018327240647948
+        },
+        {
+          "type": "ALARM_CLEARED",
+          "timestamp": "2024-01-01T01:02:00.000000",
+          "window_idx": 42,
+          "value": 219.4636640909241
+        },
+        {
+          "type": "ALARM_TRIGGERED",
+          "timestamp": "2024-01-01T01:22:00.000000",
+          "window_idx": 62,
+          "value": 100.14343708738468,
+          "z_score": 3.024488908864447
+        },
+        {
+          "type": "ALARM_CLEARED",
+          "timestamp": "2024-01-01T01:27:00.000000",
+          "window_idx": 67,
+          "value": 98.42015631255492
+        }
+      ],
+      "anomaly_intervals": [
+        {
+          "start": "2024-01-01T00:57:00.000000",
+          "end": "2024-01-01T01:02:00.000000",
+          "duration_windows": 5
+        },
+        {
+          "start": "2024-01-01T01:22:00.000000",
+          "end": "2024-01-01T01:27:00.000000",
+          "duration_windows": 5
+        }
+      ],
+      "total_anomaly_candidates": 6,
+      "total_windows": 100
+    },
+    "memory": {
+      "final_state": "NORMAL",
+      "alarm_events": [
+        {
+          "type": "ALARM_TRIGGERED",
+          "timestamp": "2024-01-01T00:47:00.000000",
+          "window_idx": 27,
+          "value": 60.33032972824702,
+          "z_score": 3.0813168377996356
+        },
+        {
+          "type": "ALARM_CLEARED",
+          "timestamp": "2024-01-01T00:52:00.000000",
+          "window_idx": 32,
+          "value": 61.39496978009834
+        }
+      ],
+      "anomaly_intervals": [
+        {
+          "start": "2024-01-01T00:47:00.000000",
+          "end": "2024-01-01T00:52:00.000000",
+          "duration_windows": 5
+        }
+      ],
+      "total_anomaly_candidates": 6,
+      "total_windows": 100
+    }
+  }
+}
