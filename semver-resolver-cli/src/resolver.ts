@@ -37,19 +37,26 @@ export interface Lockfile {
 
 export function resolveVersions(
   packageVersionRanges: Map<string, Map<string, string[]>>,
+  packageRequestors: Map<string, Map<string, string[]>>,
   registry: PackageRegistry,
-  strategy: ConflictResolutionStrategy = 'nearest'
+  strategy: ConflictResolutionStrategy = 'nearest',
+  rootPackageId?: string
 ): ResolveResult {
   const resolved = new Map<string, string>();
   const conflictReports: ConflictReport[] = [];
 
   for (const [packageName, rangeMap] of packageVersionRanges.entries()) {
     const ranges = Array.from(rangeMap.keys());
-    const requestedByMap = rangeMap;
+    const requestorMap = packageRequestors.get(packageName) || new Map<string, string[]>();
+    const getRequestors = (r: string): string[] => requestorMap.get(r) || [];
 
     const availableVersions = getPackageVersions(registry, packageName);
     const sortedVersions = [...availableVersions].filter(v => semver.valid(v));
     sortedVersions.sort((a, b) => semver.rcompare(a, b));
+
+    const rootDeclaredRange = rootPackageId
+      ? ranges.find(r => getRequestors(r).includes(rootPackageId))
+      : undefined;
 
     if (ranges.length === 1) {
       const version = findBestVersion(sortedVersions, ranges[0]);
@@ -60,7 +67,7 @@ export function resolveVersions(
           packageName,
           conflictingRanges: ranges.map(r => ({
             range: r,
-            requestedBy: requestedByMap.get(r) || []
+            requestedBy: getRequestors(r)
           })),
           intersection: ranges[0],
           resolvedVersion: null,
@@ -82,7 +89,7 @@ export function resolveVersions(
           packageName,
           conflictingRanges: ranges.map(r => ({
             range: r,
-            requestedBy: requestedByMap.get(r) || []
+            requestedBy: getRequestors(r)
           })),
           intersection,
           resolvedVersion: version,
@@ -121,9 +128,12 @@ export function resolveVersions(
 
       case 'nearest':
       default:
-        resolvedVersion = findNearestCompatible(sortedVersions, ranges, ranges[0]);
+        const preferredRange = rootDeclaredRange || ranges[0];
+        resolvedVersion = findNearestCompatible(sortedVersions, ranges, preferredRange);
         resolutionDetails = resolvedVersion
-          ? `Using nearest compatible version: ${resolvedVersion}`
+          ? rootDeclaredRange
+            ? `Using nearest compatible version: ${resolvedVersion} (root-declared range: ${rootDeclaredRange} takes priority)`
+            : `Using nearest compatible version: ${resolvedVersion}`
           : 'No compatible versions found';
         break;
     }
@@ -136,7 +146,7 @@ export function resolveVersions(
       packageName,
       conflictingRanges: ranges.map(r => ({
         range: r,
-        requestedBy: requestedByMap.get(r) || []
+        requestedBy: getRequestors(r)
       })),
       intersection,
       resolvedVersion,

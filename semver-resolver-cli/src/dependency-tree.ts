@@ -137,6 +137,14 @@ export function buildDependencyTree(
 export function deduplicateDiamondDependencies(tree: DependencyNode): DependencyNode {
   const seen = new Map<string, DependencyNode>();
 
+  function markSubtreeDuplicate(node: DependencyNode): DependencyNode {
+    return {
+      ...node,
+      isDuplicate: true,
+      children: node.children.map(markSubtreeDuplicate)
+    };
+  }
+
   function walk(node: DependencyNode): DependencyNode {
     const key = node.resolvedVersion
       ? `${node.name}@${node.resolvedVersion}`
@@ -147,13 +155,14 @@ export function deduplicateDiamondDependencies(tree: DependencyNode): Dependency
       return {
         ...node,
         isDuplicate: true,
-        children: existing.children.map(c => ({ ...c, isDuplicate: true }))
+        children: existing.children.map(markSubtreeDuplicate)
       };
     }
 
-    seen.set(key, node);
     const dedupedChildren = node.children.map(child => walk(child));
-    return { ...node, children: dedupedChildren };
+    const dedupedNode = { ...node, children: dedupedChildren };
+    seen.set(key, dedupedNode);
+    return dedupedNode;
   }
 
   return walk(tree);

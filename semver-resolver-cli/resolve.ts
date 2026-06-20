@@ -118,10 +118,13 @@ function main() {
   }
 
   printHeader('Resolving Version Conflicts');
+  const rootPackageId = `${pkg.name}@${pkg.version}`;
   const resolveResult = resolveVersions(
     buildResult.packageVersionRanges,
+    buildResult.packageRequestors,
     registry,
-    cliArgs.strategy
+    cliArgs.strategy,
+    rootPackageId
   );
 
   const actualConflicts = resolveResult.conflictReports.filter(r => r.hasConflict);
