@@ -1,0 +1,72 @@
+# ====================================================================
+# 数据脱敏管道规则配置 (rules.yaml)
+# 包含: 敏感字段识别规则 + 脱敏策略 + 检测参数
+# ====================================================================
+
+# --------------------------------------------------------------------
+# 敏感字段识别规则
+#   column_rules.<field_type>:
+#     keywords  : 列名语义匹配关键字 (命中即判定该列为此类型)
+#     patterns  : 正则模式库 (对列内样本值做正则匹配, 命中率达阈值则判定)
+# 优先级: 列名语义匹配 > 正则模式匹配
+# --------------------------------------------------------------------
+column_rules:
+  phone:
+    keywords: [phone, mobile, tel, cellphone, telephone,联系电话, 手机号, 手机, 电话]
+    patterns:
+      - '1[3-9]\d{9}'
+      - '1[3-9]\d{9}'
+
+  idcard:
+    keywords: [idcard, id_card, identity, idno, id_no, sfz, shenfenzheng,身份证, 证件号]
+    patterns:
+      - '[1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx]'
+      - '\d{15}'
+
+  bankcard:
+    keywords: [bankcard, bank_card, cardno, card_no, account_no,银行卡, 卡号, 账号]
+    patterns:
+      - '62\d{14,17}'
+      - '[1-9]\d{15,18}'
+
+  email:
+    keywords: [email, mail, e_mail, 邮箱, 邮件]
+    patterns:
+      - '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+
+# --------------------------------------------------------------------
+# 脱敏策略
+#   strategy 取值:
+#     keep_ends      : 保留首尾若干位, 中间用 mask_char 填充
+#     mask_middle    : 掩码中间 N 位 (身份证: 掩码出生日期 8 位)
+#     mask_email     : 邮箱脱敏 (保留域名, 本地部分保留 keep_local_prefix 位)
+# --------------------------------------------------------------------
+masking:
+  phone:
+    strategy: keep_ends
+    keep_prefix: 3
+    keep_suffix: 4
+    mask_char: '*'
+  idcard:
+    strategy: mask_middle
+    mask_length: 8      # 掩码出生日期 8 位 (18位身份证: 6位地区 + 8位生日 + 4位序列校验)
+    start: 6           # 从第 7 位开始掩码, 精确覆盖出生日期
+    mask_char: '*'
+  bankcard:
+    strategy: keep_ends
+    keep_prefix: 4
+    keep_suffix: 4
+    mask_char: '*'
+  email:
+    strategy: mask_email
+    keep_local_prefix: 1
+    mask_char: '*'
+
+# --------------------------------------------------------------------
+# 检测参数
+#   sample_size       : 每列抽样样本数量上限
+#   match_threshold   : 正则命中率阈值 (matched/total >= 该值才判定为敏感)
+# --------------------------------------------------------------------
+detection:
+  sample_size: 100
+  match_threshold: 0.5
