@@ -40,7 +40,13 @@ def main():
         timestamp_column=config.timestamp_column
     )
 
-    detection_results = detector.detect_anomalies(merged_df, metric_names)
+    metric_thresholds = {}
+    for metric in metric_names:
+        metric_cfg = config.get_metric_config(metric)
+        if metric_cfg and 'sigma_threshold' in metric_cfg:
+            metric_thresholds[metric] = metric_cfg['sigma_threshold']
+
+    detection_results = detector.detect_anomalies(merged_df, metric_names, metric_thresholds)
 
     debouncer = AlarmDebouncer(
         min_alarm_windows=config.min_alarm_windows,
@@ -49,7 +55,7 @@ def main():
 
     alarm_results = debouncer.process_all(detection_results)
 
-    output = format_output(alarm_results, detection_results, config)
+    output = format_output(alarm_results, detection_results, config, metric_thresholds)
 
     if args.output:
         with open(args.output, 'w', encoding='utf-8') as f:
@@ -61,12 +67,13 @@ def main():
     print_summary(alarm_results)
 
 
-def format_output(alarm_results, detection_results, config):
+def format_output(alarm_results, detection_results, config, metric_thresholds):
     output = {
         'config': {
             'window_size': config.window_size,
             'window_step': config.window_step,
             'sigma_threshold': config.sigma_threshold,
+            'metric_thresholds': metric_thresholds,
             'min_alarm_windows': config.min_alarm_windows,
             'recovery_windows': config.recovery_windows
         },
@@ -83,6 +90,7 @@ def format_output(alarm_results, detection_results, config):
             'final_state': result['final_state'],
             'alarm_events': result['alarm_events'],
             'anomaly_intervals': result['anomaly_intervals'],
+            'sigma_threshold': detection_results[metric].get('sigma_threshold', config.sigma_threshold),
             'total_anomaly_candidates': sum(
                 1 for w in detection_results[metric]['windows'] if w['is_anomaly']
             ),

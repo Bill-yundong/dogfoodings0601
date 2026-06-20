@@ -81,7 +81,8 @@ class AlarmDebouncer:
         anomaly_intervals = []
         state_history = []
 
-        current_alarm_start = None
+        current_alarm_start_idx = None
+        current_alarm_start_ts = None
 
         for i, window in enumerate(window_results):
             is_anomaly = window['is_anomaly']
@@ -96,7 +97,8 @@ class AlarmDebouncer:
             })
 
             if result['triggered_alarm']:
-                current_alarm_start = window['point_timestamp']
+                current_alarm_start_idx = i
+                current_alarm_start_ts = window['point_timestamp']
                 alarm_events.append({
                     'type': 'ALARM_TRIGGERED',
                     'timestamp': window['point_timestamp'],
@@ -105,13 +107,13 @@ class AlarmDebouncer:
                     'z_score': window['z_score']
                 })
 
-            if result['cleared_alarm'] and current_alarm_start is not None:
+            if result['cleared_alarm'] and current_alarm_start_idx is not None:
                 anomaly_intervals.append({
-                    'start': current_alarm_start,
+                    'start': current_alarm_start_ts,
                     'end': window['point_timestamp'],
-                    'duration_windows': i - state_history.index(
-                        next(s for s in state_history if s['timestamp'] == current_alarm_start)
-                    )
+                    'start_window_idx': current_alarm_start_idx,
+                    'end_window_idx': i,
+                    'duration_windows': i - current_alarm_start_idx
                 })
                 alarm_events.append({
                     'type': 'ALARM_CLEARED',
@@ -119,16 +121,17 @@ class AlarmDebouncer:
                     'window_idx': i,
                     'value': window['point_value']
                 })
-                current_alarm_start = None
+                current_alarm_start_idx = None
+                current_alarm_start_ts = None
 
-        if current_alarm_start is not None:
+        if current_alarm_start_idx is not None:
             last_window = window_results[-1]
             anomaly_intervals.append({
-                'start': current_alarm_start,
+                'start': current_alarm_start_ts,
                 'end': last_window['point_timestamp'],
-                'duration_windows': len(window_results) - next(
-                    i for i, s in enumerate(state_history) if s['timestamp'] == current_alarm_start
-                ),
+                'start_window_idx': current_alarm_start_idx,
+                'end_window_idx': len(window_results) - 1,
+                'duration_windows': len(window_results) - current_alarm_start_idx,
                 'ongoing': True
             })
 
