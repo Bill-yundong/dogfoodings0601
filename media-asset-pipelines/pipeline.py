@@ -50,11 +50,18 @@ def cmd_process(args):
     print(f"         Found {len(assets)} unique image files (after dedup).")
     print()
 
+    print("[STEP 2] Checking asset manifest for changes...")
+
+    existing_paths = [a.file_path for a in assets]
+    removed = db.purge_missing_assets(existing_paths)
+    if removed > 0:
+        print(f"         Purged {removed} record(s) for deleted source files.")
+
     if not assets:
         print("[DONE] No images found. Exiting.")
+        _print_stats(db)
         return
 
-    print("[STEP 2] Checking asset manifest for changes...")
     pending_assets: list[Asset] = []
     skipped = 0
 

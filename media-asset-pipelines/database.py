@@ -72,10 +72,10 @@ class Database:
                 (abs_path,)
             ).fetchone()
             if existing:
-                changed = (existing['content_hash'] != content_hash or
-                           existing['file_size'] != file_size or
-                           abs(existing['last_modified'] - last_modified) >= 0.001)
-                if changed:
+                hash_changed = existing['content_hash'] != content_hash
+                meta_changed = (existing['file_size'] != file_size or
+                                abs(existing['last_modified'] - last_modified) >= 0.001)
+                if hash_changed:
                     conn.execute(
                         """UPDATE asset_manifest
                            SET content_hash = ?, file_size = ?, last_modified = ?,
@@ -84,6 +84,13 @@ class Database:
                                processed_at = NULL, error_message = NULL
                            WHERE file_path = ?""",
                         (content_hash, file_size, last_modified, abs_path)
+                    )
+                elif meta_changed:
+                    conn.execute(
+                        """UPDATE asset_manifest
+                           SET file_size = ?, last_modified = ?
+                           WHERE file_path = ?""",
+                        (file_size, last_modified, abs_path)
                     )
             else:
                 conn.execute(
@@ -125,7 +132,8 @@ class Database:
         abs_path = os.path.abspath(file_path)
         with self._get_conn() as conn:
             row = conn.execute(
-                """SELECT content_hash, file_size, last_modified, status
+                """SELECT content_hash, status,
+                          thumbnail_path, medium_path, large_path
                    FROM asset_manifest WHERE file_path = ?""",
                 (abs_path,)
             ).fetchone()
@@ -133,9 +141,37 @@ class Database:
                 return False
             if row['status'] != 'processed':
                 return False
-            return (row['content_hash'] == content_hash and
-                    row['file_size'] == file_size and
-                    abs(row['last_modified'] - last_modified) < 0.001)
+            if row['content_hash'] != content_hash:
+                return False
+
+        variant_paths = [row['thumbnail_path'], row['medium_path'], row['large_path']]
+        for p in variant_paths:
+            if p and not os.path.isfile(p):
+                return False
+        return True
+
+    def purge_missing_assets(self, existing_paths: list) -> int:
+        abs_paths = [os.path.abspath(p) for p in existing_paths]
+        with self._get_conn() as conn:
+            if not abs_paths:
+                cur = conn.execute("SELECT COUNT(*) as cnt FROM asset_manifest")
+                count = cur.fetchone()['cnt']
+                if count > 0:
+                    conn.execute("DELETE FROM asset_manifest")
+                return count
+
+            placeholders = ','.join('?' * len(abs_paths))
+            cur = conn.execute(
+                f"SELECT file_path FROM asset_manifest WHERE file_path NOT IN ({placeholders})",
+                abs_paths
+            )
+            removed_paths = [row['file_path'] for row in cur.fetchall()]
+            if removed_paths:
+                conn.execute(
+                    f"DELETE FROM asset_manifest WHERE file_path NOT IN ({placeholders})",
+                    abs_paths
+                )
+            return len(removed_paths)
 
     def get_stats(self):
         with self._get_conn() as conn:
