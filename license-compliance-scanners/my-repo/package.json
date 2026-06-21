@@ -7,7 +7,9 @@
     "commander": "^11.1.0",
     "typescript": "^5.3.3",
     "ts-node": "^10.9.2",
-    "test-gpl-lib": "^2.0.0"
+    "test-gpl-lib": "^2.0.0",
+    "test-gpl-or-later": "^1.0.0",
+    "test-proprietary": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0"

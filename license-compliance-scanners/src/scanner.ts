@@ -42,8 +42,6 @@ export class LicenseScanner {
     const conflicts = this.conflictDetector.detectConflicts(uniqueDeps);
     const infectionReport = this.conflictDetector.detectCopyleftInfection(uniqueDeps);
 
-    const summary = this.buildSummary(uniqueDeps, conflicts);
-
     if (infectionReport.infected && infectionReport.strongestCopyleft) {
       const existingConflict = conflicts.find(
         c => c.licenseA === infectionReport.strongestCopyleft || c.licenseB === infectionReport.strongestCopyleft
@@ -59,6 +57,8 @@ export class LicenseScanner {
         this.sortConflicts(conflicts);
       }
     }
+
+    const summary = this.buildSummary(uniqueDeps, conflicts);
 
     return {
       projectPath: absolutePath,
@@ -139,13 +139,6 @@ export class LicenseScanner {
 
     for (const conflict of conflicts) {
       summary[conflict.riskLevel]++;
-    }
-
-    for (const dep of dependencies) {
-      const info = getLicenseInfo(dep.license);
-      if (info.copyleftStrength === 'strong' && summary.high === 0) {
-        summary.high++;
-      }
     }
 
     return summary;

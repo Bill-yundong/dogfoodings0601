@@ -118,6 +118,28 @@
       ]
     },
     {
+      "name": "test-gpl-or-later",
+      "version": "1.0.0",
+      "license": "GPL-3.0-or-later",
+      "packageManager": "npm",
+      "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
+      "dependencyChain": [
+        "test-project",
+        "test-gpl-or-later"
+      ]
+    },
+    {
+      "name": "test-proprietary",
+      "version": "1.0.0",
+      "license": "Proprietary",
+      "packageManager": "npm",
+      "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
+      "dependencyChain": [
+        "test-project",
+        "test-proprietary"
+      ]
+    },
+    {
       "name": "@types/node",
       "version": "20.10.0",
       "license": "MIT",
@@ -208,44 +230,11 @@
   ],
   "conflicts": [
     {
-      "licenseA": "MIT",
-      "licenseB": "GPL-3.0-only",
-      "riskLevel": "medium",
-      "description": "MIT code can be included in GPLv3 projects, but the combined work will be under GPLv3 (copyleft infection)",
+      "licenseA": "GPL-3.0-only",
+      "licenseB": "Proprietary",
+      "riskLevel": "critical",
+      "description": "Proprietary code cannot be distributed with GPL code - this is the classic GPL infection risk",
       "packagesInvolved": [
-        {
-          "name": "commander",
-          "version": "11.1.0",
-          "license": "MIT",
-          "packageManager": "npm",
-          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
-          "dependencyChain": [
-            "test-project",
-            "commander"
-          ]
-        },
-        {
-          "name": "ts-node",
-          "version": "10.9.2",
-          "license": "MIT",
-          "packageManager": "npm",
-          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
-          "dependencyChain": [
-            "test-project",
-            "ts-node"
-          ]
-        },
-        {
-          "name": "@types/node",
-          "version": "20.10.0",
-          "license": "MIT",
-          "packageManager": "npm",
-          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
-          "dependencyChain": [
-            "test-project",
-            "@types/node"
-          ]
-        },
         {
           "name": "test-gpl-lib",
           "version": "2.0.0",
@@ -255,6 +244,77 @@
           "dependencyChain": [
             "test-project",
             "test-gpl-lib"
+          ]
+        },
+        {
+          "name": "test-proprietary",
+          "version": "1.0.0",
+          "license": "Proprietary",
+          "packageManager": "npm",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
+          "dependencyChain": [
+            "test-project",
+            "test-proprietary"
+          ]
+        }
+      ]
+    },
+    {
+      "licenseA": "GPL-3.0-or-later",
+      "licenseB": "Proprietary",
+      "riskLevel": "critical",
+      "description": "Proprietary code cannot be combined with strong copyleft (GPL/AGPL) code - classic GPL infection risk",
+      "packagesInvolved": [
+        {
+          "name": "test-gpl-or-later",
+          "version": "1.0.0",
+          "license": "GPL-3.0-or-later",
+          "packageManager": "npm",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
+          "dependencyChain": [
+            "test-project",
+            "test-gpl-or-later"
+          ]
+        },
+        {
+          "name": "test-proprietary",
+          "version": "1.0.0",
+          "license": "Proprietary",
+          "packageManager": "npm",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
+          "dependencyChain": [
+            "test-project",
+            "test-proprietary"
+          ]
+        }
+      ]
+    },
+    {
+      "licenseA": "GPL-3.0-only",
+      "licenseB": "GPL-3.0-or-later",
+      "riskLevel": "high",
+      "description": "Two different strong copyleft licenses detected - likely incompatible, verify carefully",
+      "packagesInvolved": [
+        {
+          "name": "test-gpl-lib",
+          "version": "2.0.0",
+          "license": "GPL-3.0-only",
+          "packageManager": "npm",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
+          "dependencyChain": [
+            "test-project",
+            "test-gpl-lib"
+          ]
+        },
+        {
+          "name": "test-gpl-or-later",
+          "version": "1.0.0",
+          "license": "GPL-3.0-or-later",
+          "packageManager": "npm",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
+          "dependencyChain": [
+            "test-project",
+            "test-gpl-or-later"
           ]
         }
       ]
@@ -748,6 +808,308 @@
     },
     {
       "licenseA": "UNKNOWN",
+      "licenseB": "GPL-3.0-or-later",
+      "riskLevel": "medium",
+      "description": "Cannot verify compatibility - one or more licenses are unknown",
+      "packagesInvolved": [
+        {
+          "name": "github.com/gin-gonic/gin",
+          "version": "v1.9.1",
+          "license": "UNKNOWN",
+          "packageManager": "go",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/go.mod",
+          "dependencyChain": [
+            "github.com/example/test-project",
+            "github.com/gin-gonic/gin"
+          ]
+        },
+        {
+          "name": "github.com/spf13/cobra",
+          "version": "v1.8.0",
+          "license": "UNKNOWN",
+          "packageManager": "go",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/go.mod",
+          "dependencyChain": [
+            "github.com/example/test-project",
+            "github.com/spf13/cobra"
+          ]
+        },
+        {
+          "name": "golang.org/x/crypto",
+          "version": "v0.17.0",
+          "license": "UNKNOWN",
+          "packageManager": "go",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/go.mod",
+          "dependencyChain": [
+            "github.com/example/test-project",
+            "golang.org/x/crypto"
+          ]
+        },
+        {
+          "name": "github.com/mitchellh/go-homedir",
+          "version": "v1.1.0",
+          "license": "UNKNOWN",
+          "packageManager": "go",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/go.mod",
+          "dependencyChain": [
+            "github.com/example/test-project",
+            "github.com/mitchellh/go-homedir"
+          ]
+        },
+        {
+          "name": "gopkg.in/yaml.v3",
+          "version": "v3.0.1",
+          "license": "UNKNOWN",
+          "packageManager": "go",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/go.mod",
+          "dependencyChain": [
+            "github.com/example/test-project",
+            "gopkg.in/yaml.v3"
+          ]
+        },
+        {
+          "name": "requests",
+          "version": "2.31.0",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "requests"
+          ]
+        },
+        {
+          "name": "flask",
+          "version": "2.0.0",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "flask"
+          ]
+        },
+        {
+          "name": "django",
+          "version": "4.2.0",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "django"
+          ]
+        },
+        {
+          "name": "numpy",
+          "version": "1.24.0",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "numpy"
+          ]
+        },
+        {
+          "name": "pandas",
+          "version": "latest",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "pandas"
+          ]
+        },
+        {
+          "name": "cryptography",
+          "version": "latest",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "cryptography"
+          ]
+        },
+        {
+          "name": "test-gpl-package",
+          "version": "1.0.0",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "test-gpl-package"
+          ]
+        },
+        {
+          "name": "test-gpl-or-later",
+          "version": "1.0.0",
+          "license": "GPL-3.0-or-later",
+          "packageManager": "npm",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
+          "dependencyChain": [
+            "test-project",
+            "test-gpl-or-later"
+          ]
+        }
+      ]
+    },
+    {
+      "licenseA": "UNKNOWN",
+      "licenseB": "Proprietary",
+      "riskLevel": "medium",
+      "description": "Cannot verify compatibility - one or more licenses are unknown",
+      "packagesInvolved": [
+        {
+          "name": "github.com/gin-gonic/gin",
+          "version": "v1.9.1",
+          "license": "UNKNOWN",
+          "packageManager": "go",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/go.mod",
+          "dependencyChain": [
+            "github.com/example/test-project",
+            "github.com/gin-gonic/gin"
+          ]
+        },
+        {
+          "name": "github.com/spf13/cobra",
+          "version": "v1.8.0",
+          "license": "UNKNOWN",
+          "packageManager": "go",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/go.mod",
+          "dependencyChain": [
+            "github.com/example/test-project",
+            "github.com/spf13/cobra"
+          ]
+        },
+        {
+          "name": "golang.org/x/crypto",
+          "version": "v0.17.0",
+          "license": "UNKNOWN",
+          "packageManager": "go",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/go.mod",
+          "dependencyChain": [
+            "github.com/example/test-project",
+            "golang.org/x/crypto"
+          ]
+        },
+        {
+          "name": "github.com/mitchellh/go-homedir",
+          "version": "v1.1.0",
+          "license": "UNKNOWN",
+          "packageManager": "go",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/go.mod",
+          "dependencyChain": [
+            "github.com/example/test-project",
+            "github.com/mitchellh/go-homedir"
+          ]
+        },
+        {
+          "name": "gopkg.in/yaml.v3",
+          "version": "v3.0.1",
+          "license": "UNKNOWN",
+          "packageManager": "go",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/go.mod",
+          "dependencyChain": [
+            "github.com/example/test-project",
+            "gopkg.in/yaml.v3"
+          ]
+        },
+        {
+          "name": "requests",
+          "version": "2.31.0",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "requests"
+          ]
+        },
+        {
+          "name": "flask",
+          "version": "2.0.0",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "flask"
+          ]
+        },
+        {
+          "name": "django",
+          "version": "4.2.0",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "django"
+          ]
+        },
+        {
+          "name": "numpy",
+          "version": "1.24.0",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "numpy"
+          ]
+        },
+        {
+          "name": "pandas",
+          "version": "latest",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "pandas"
+          ]
+        },
+        {
+          "name": "cryptography",
+          "version": "latest",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "cryptography"
+          ]
+        },
+        {
+          "name": "test-gpl-package",
+          "version": "1.0.0",
+          "license": "UNKNOWN",
+          "packageManager": "pip",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/requirements.txt",
+          "dependencyChain": [
+            "my-repo",
+            "test-gpl-package"
+          ]
+        },
+        {
+          "name": "test-proprietary",
+          "version": "1.0.0",
+          "license": "Proprietary",
+          "packageManager": "npm",
+          "path": "/Users/yundongsoftware/Documents/projects/dogfoodings0601/license-compliance-scanners/my-repo/package.json",
+          "dependencyChain": [
+            "test-project",
+            "test-proprietary"
+          ]
+        }
+      ]
+    },
+    {
+      "licenseA": "UNKNOWN",
       "licenseB": "UNKNOWN",
       "riskLevel": "medium",
       "description": "12 package(s) with unknown licenses - manual review required",
@@ -888,10 +1250,10 @@
     }
   ],
   "summary": {
-    "totalPackages": 18,
-    "critical": 0,
+    "totalPackages": 20,
+    "critical": 2,
     "high": 1,
-    "medium": 5,
+    "medium": 6,
     "low": 0,
     "info": 0
   }

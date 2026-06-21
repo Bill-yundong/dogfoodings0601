@@ -84,6 +84,29 @@ export class LicenseRuleEngine {
       };
     }
 
+    if (infoA.category === 'proprietary' || infoB.category === 'proprietary') {
+      const other = infoA.category === 'proprietary' ? infoB : infoA;
+      if (other.copyleftStrength === 'strong') {
+        return {
+          compatible: false,
+          riskLevel: 'critical',
+          description: 'Proprietary code cannot be combined with strong copyleft (GPL/AGPL) code - classic GPL infection risk',
+        };
+      }
+      if (other.category === 'copyleft' || other.category === 'weak-copyleft') {
+        return {
+          compatible: true,
+          riskLevel: 'medium',
+          description: 'Proprietary code can dynamically link with weak/file-level copyleft libraries, but static linking requires source disclosure',
+        };
+      }
+      return {
+        compatible: true,
+        riskLevel: 'low',
+        description: 'Proprietary license allows use with permissive licensed code with attribution',
+      };
+    }
+
     const hasStrongCopyleft = infoA.copyleftStrength === 'strong' || infoB.copyleftStrength === 'strong';
     const hasCopyleft = infoA.category === 'copyleft' || infoB.category === 'copyleft' || infoA.category === 'weak-copyleft' || infoB.category === 'weak-copyleft';
 
@@ -108,14 +131,6 @@ export class LicenseRuleEngine {
         compatible: true,
         riskLevel: 'medium',
         description: 'Weak/medium copyleft license present - review distribution and linking requirements',
-      };
-    }
-
-    if (infoA.category === 'proprietary' || infoB.category === 'proprietary') {
-      return {
-        compatible: false,
-        riskLevel: 'high',
-        description: 'Proprietary license involved - verify redistribution rights carefully',
       };
     }
 
@@ -159,7 +174,7 @@ export class ConflictDetector {
         const conflictKey = this.generateConflictKey(licenseA, licenseB, result.riskLevel);
         if (seen.has(conflictKey)) continue;
 
-        if (result.riskLevel !== 'info' && (result.riskLevel === 'critical' || result.riskLevel === 'high' || result.riskLevel === 'medium')) {
+        if (!result.compatible && (result.riskLevel === 'critical' || result.riskLevel === 'high' || result.riskLevel === 'medium')) {
           seen.add(conflictKey);
 
           const packagesInvolved = [
