@@ -1,0 +1,27 @@
+zones:
+  example.com:
+    A:
+      - "93.184.216.34"
+      - "10.0.0.99"
+    CNAME:
+      - "www.example.com."
+      - "bogus-nonexistent.example.com."
+    MX:
+      - "10 mail.example.com."
+      - "0 fake-nonexistent-mx.example.com."
+
+  cloudflare.com:
+    A:
+      - "104.16.132.229"
+      - "192.168.1.1"
+    CNAME: []
+    MX:
+      - "1 mx1.cloudflare.com."
+
+  google.com:
+    A:
+      - "8.8.8.8"
+    CNAME: []
+    MX:
+      - "10 aspmx.l.google.com."
+      - "20 alt1.aspmx.l.google.com."

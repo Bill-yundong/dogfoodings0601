@@ -1,0 +1,299 @@
+{
+  "generated_at": "2026-06-21T04:03:48.400001+00:00",
+  "summary": {
+    "total_zones": 3,
+    "drifted_zones": 3,
+    "ok_zones": 0,
+    "added": 14,
+    "missing": 11,
+    "errors": 0
+  },
+  "zones": {
+    "example.com": {
+      "status": "tampered",
+      "summary": {
+        "added": 2,
+        "missing": 6,
+        "error": 0
+      },
+      "first_drift_at": "2026-06-21T04:03:48.398796+00:00",
+      "consecutive_drift_days": 1,
+      "records": {
+        "A": {
+          "status": "tampered",
+          "baseline": [
+            "10.0.0.99",
+            "93.184.216.34"
+          ],
+          "actual": [
+            "104.20.23.154",
+            "172.66.147.243"
+          ],
+          "diffs": [
+            {
+              "category": "added",
+              "value": "104.20.23.154",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "added",
+              "value": "172.66.147.243",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "missing",
+              "value": "10.0.0.99",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "missing",
+              "value": "93.184.216.34",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            }
+          ]
+        },
+        "CNAME": {
+          "status": "tampered",
+          "baseline": [
+            "bogus-nonexistent.example.com",
+            "www.example.com"
+          ],
+          "actual": [],
+          "diffs": [
+            {
+              "category": "missing",
+              "value": "bogus-nonexistent.example.com",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "missing",
+              "value": "www.example.com",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            }
+          ]
+        },
+        "MX": {
+          "status": "tampered",
+          "baseline": [
+            "0 fake-nonexistent-mx.example.com",
+            "10 mail.example.com"
+          ],
+          "actual": [],
+          "diffs": [
+            {
+              "category": "missing",
+              "value": "0 fake-nonexistent-mx.example.com",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "missing",
+              "value": "10 mail.example.com",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            }
+          ]
+        }
+      }
+    },
+    "cloudflare.com": {
+      "status": "tampered",
+      "summary": {
+        "added": 5,
+        "missing": 2,
+        "error": 0
+      },
+      "first_drift_at": "2026-06-21T04:03:48.398796+00:00",
+      "consecutive_drift_days": 1,
+      "records": {
+        "A": {
+          "status": "tampered",
+          "baseline": [
+            "104.16.132.229",
+            "192.168.1.1"
+          ],
+          "actual": [
+            "104.16.132.229",
+            "104.16.133.229"
+          ],
+          "diffs": [
+            {
+              "category": "added",
+              "value": "104.16.133.229",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "missing",
+              "value": "192.168.1.1",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            }
+          ]
+        },
+        "CNAME": {
+          "status": "ok",
+          "baseline": [],
+          "actual": [],
+          "diffs": []
+        },
+        "MX": {
+          "status": "tampered",
+          "baseline": [
+            "1 mx1.cloudflare.com"
+          ],
+          "actual": [
+            "10 mxa.global.inbound.cf-emailsecurity.net",
+            "10 mxb.global.inbound.cf-emailsecurity.net",
+            "5 mxa-canary.global.inbound.cf-emailsecurity.net",
+            "5 mxb-canary.global.inbound.cf-emailsecurity.net"
+          ],
+          "diffs": [
+            {
+              "category": "added",
+              "value": "10 mxa.global.inbound.cf-emailsecurity.net",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "added",
+              "value": "10 mxb.global.inbound.cf-emailsecurity.net",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "added",
+              "value": "5 mxa-canary.global.inbound.cf-emailsecurity.net",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "added",
+              "value": "5 mxb-canary.global.inbound.cf-emailsecurity.net",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "missing",
+              "value": "1 mx1.cloudflare.com",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            }
+          ]
+        }
+      }
+    },
+    "google.com": {
+      "status": "tampered",
+      "summary": {
+        "added": 7,
+        "missing": 3,
+        "error": 0
+      },
+      "first_drift_at": "2026-06-21T04:03:48.398796+00:00",
+      "consecutive_drift_days": 1,
+      "records": {
+        "A": {
+          "status": "tampered",
+          "baseline": [
+            "8.8.8.8"
+          ],
+          "actual": [
+            "142.250.139.100",
+            "142.250.139.101",
+            "142.250.139.102",
+            "142.250.139.113",
+            "142.250.139.138",
+            "142.250.139.139"
+          ],
+          "diffs": [
+            {
+              "category": "added",
+              "value": "142.250.139.100",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "added",
+              "value": "142.250.139.101",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "added",
+              "value": "142.250.139.102",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "added",
+              "value": "142.250.139.113",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "added",
+              "value": "142.250.139.138",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "added",
+              "value": "142.250.139.139",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "missing",
+              "value": "8.8.8.8",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            }
+          ]
+        },
+        "CNAME": {
+          "status": "ok",
+          "baseline": [],
+          "actual": [],
+          "diffs": []
+        },
+        "MX": {
+          "status": "tampered",
+          "baseline": [
+            "10 aspmx.l.google.com",
+            "20 alt1.aspmx.l.google.com"
+          ],
+          "actual": [
+            "10 smtp.google.com"
+          ],
+          "diffs": [
+            {
+              "category": "added",
+              "value": "10 smtp.google.com",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "missing",
+              "value": "10 aspmx.l.google.com",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            },
+            {
+              "category": "missing",
+              "value": "20 alt1.aspmx.l.google.com",
+              "first_seen": "2026-06-21T04:03:48.398796+00:00",
+              "consecutive_days": 1
+            }
+          ]
+        }
+      }
+    }
+  }
+}
