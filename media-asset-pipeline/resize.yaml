@@ -1,0 +1,21 @@
+output_root: ./processed
+
+variants:
+  thumbnail:
+    width: 200
+    height: 200
+    fit: cover
+    quality: 85
+    format: jpg
+  medium:
+    width: 800
+    height: 600
+    fit: contain
+    quality: 90
+    format: jpg
+  large:
+    width: 1920
+    height: 1080
+    fit: contain
+    quality: 95
+    format: jpg
