@@ -59,7 +59,7 @@ def run(billing, rules, db, output, prev_billing):
 
     click.echo(f"[5/5] 生成月度报表 → {output}")
     os.makedirs(output, exist_ok=True)
-    generator = ReportGenerator(database, output_dir=output)
+    generator = ReportGenerator(database, output_dir=output, rules=rules_data)
     generator.generate_monthly_report(current_month, prev_month)
 
     click.echo("\n✅ 处理完成！")

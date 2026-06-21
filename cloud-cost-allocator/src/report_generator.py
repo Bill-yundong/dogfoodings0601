@@ -10,10 +10,102 @@ from .database import Database
 
 
 class ReportGenerator:
-    def __init__(self, db: Database, output_dir: str = "./reports"):
+    def __init__(self, db: Database, output_dir: str = "./reports", rules: Optional[Dict] = None):
         self.db = db
         self.output_dir = output_dir
+        self.rules = rules or {}
+        self.budgets = self.rules.get("budgets", {})
         os.makedirs(self.output_dir, exist_ok=True)
+
+    def _calc_budget_alerts(self, cur_summary: Dict[str, Dict]) -> List[Dict]:
+        alerts: List[Dict] = []
+        for cc, data in cur_summary.items():
+            budget = self.budgets.get(cc)
+            if budget is None or budget <= 0:
+                continue
+            actual = data["total_cost"]
+            ratio = actual / budget * 100
+            level = None
+            if ratio >= 100:
+                level = "RED"
+            elif ratio >= 80:
+                level = "YELLOW"
+            if level:
+                alerts.append({
+                    "cost_center": cc,
+                    "budget": budget,
+                    "actual": actual,
+                    "ratio": round(ratio, 2),
+                    "level": level,
+                    "diff": round(actual - budget, 2),
+                })
+        alerts.sort(key=lambda x: (-x["ratio"], x["cost_center"]))
+        return alerts
+
+    def _generate_tag_coverage_report(self, billing_month: str, total_cost: float) -> Dict:
+        rows = self.db.query(
+            """SELECT service_name, resource_name, resource_id, cost, tags, assigned_by
+               FROM billing_records
+               WHERE billing_month = ? AND assigned_by = 'default'
+               ORDER BY cost DESC""",
+            (billing_month,),
+        )
+        service_groups: Dict[str, Dict] = {}
+        detail_rows: List[List] = []
+        total_untagged_cost = 0.0
+        total_untagged_count = 0
+
+        for r in rows:
+            svc = r["service_name"] or "Unknown"
+            cost = r["cost"] or 0.0
+            total_untagged_cost += cost
+            total_untagged_count += 1
+            if svc not in service_groups:
+                service_groups[svc] = {"count": 0, "cost": 0.0}
+            service_groups[svc]["count"] += 1
+            service_groups[svc]["cost"] += cost
+            detail_rows.append([
+                svc,
+                r["resource_name"] or "",
+                r["resource_id"] or "",
+                f"{cost:.2f}",
+                r["tags"] or "{}",
+            ])
+
+        coverage_csv = os.path.join(self.output_dir, f"tag-coverage-{billing_month}.csv")
+        with open(coverage_csv, "w", encoding="utf-8", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["【标签覆盖率汇总】", "", "", "", ""])
+            overall_pct = (total_untagged_cost / total_cost * 100) if total_cost > 0 else 0.0
+            writer.writerow(["无标签资源数", total_untagged_count, "", "", ""])
+            writer.writerow(["无标签总费用(¥)", f"{total_untagged_cost:.2f}", "", "", ""])
+            writer.writerow(["费用占比(%)", f"{overall_pct:.2f}", "", "", ""])
+            writer.writerow([])
+            writer.writerow(["【按服务分组】", "", "", "", ""])
+            writer.writerow(["服务名", "资源数", "费用(¥)", "分组占比(%)", ""])
+            for svc in sorted(service_groups.keys(), key=lambda x: -service_groups[x]["cost"]):
+                info = service_groups[svc]
+                svc_pct = (info["cost"] / total_untagged_cost * 100) if total_untagged_cost > 0 else 0.0
+                writer.writerow([svc, info["count"], f"{info['cost']:.2f}", f"{svc_pct:.2f}"])
+            writer.writerow([])
+            writer.writerow(["【Unallocated 资源明细】", "", "", "", ""])
+            writer.writerow(["服务名", "资源名称", "资源ID", "费用(¥)", "标签原始值"])
+            for row in detail_rows:
+                writer.writerow(row)
+
+        return {
+            "untagged_count": total_untagged_count,
+            "untagged_cost": round(total_untagged_cost, 2),
+            "cost_percentage": round(overall_pct, 2) if total_cost > 0 else 0.0,
+            "by_service": {
+                svc: {
+                    "count": info["count"],
+                    "cost": round(info["cost"], 2),
+                    "group_percentage": round((info["cost"] / total_untagged_cost * 100), 2) if total_untagged_cost > 0 else 0.0,
+                }
+                for svc, info in service_groups.items()
+            },
+        }
 
     def _load_summary(self, billing_month: str) -> Dict[str, Dict]:
         rows = self.db.query(
@@ -148,6 +240,8 @@ class ReportGenerator:
 
         top_growth = self._get_top_growth_items(current_month, prev_month)
         alloc_details = self._get_allocation_details(current_month)
+        alerts = self._calc_budget_alerts(cur_summary)
+        tag_coverage = self._generate_tag_coverage_report(current_month, total_cur)
 
         summary_csv = os.path.join(self.output_dir, f"summary-{current_month}.csv")
         with open(summary_csv, "w", encoding="utf-8", newline="") as f:
@@ -247,7 +341,40 @@ class ReportGenerator:
                     headers=["规则", "源", "目标", "金额", "记录数"],
                     tablefmt="grid",
                 ))
+                f.write("\n\n")
+
+            if alerts:
+                f.write(f"【预算告警】\n")
+                alert_lines = []
+                for a in alerts:
+                    icon = "🔴" if a["level"] == "RED" else "🟡"
+                    label = "红色-超预算" if a["level"] == "RED" else "黄色-临近预算"
+                    alert_lines.append([
+                        f"{icon} {label}",
+                        a["cost_center"],
+                        f"¥{a['budget']:,.2f}",
+                        f"¥{a['actual']:,.2f}",
+                        f"{a['ratio']:.1f}%",
+                        f"¥{a['diff']:+,.2f}",
+                    ])
+                f.write(tabulate(
+                    alert_lines,
+                    headers=["告警级别", "成本中心", "月度预算", "实际总费用", "预算使用率", "超支金额"],
+                    tablefmt="grid",
+                ))
                 f.write("\n")
+            else:
+                f.write(f"【预算告警】\n  ✅ 所有成本中心均在预算范围内\n\n")
+
+            f.write(f"【标签覆盖率】\n")
+            f.write(f"  无标签兜底资源数: {tag_coverage['untagged_count']}\n")
+            f.write(f"  无标签总费用: ¥{tag_coverage['untagged_cost']:,.2f}\n")
+            f.write(f"  费用占比: {tag_coverage['cost_percentage']:.2f}%\n")
+            if tag_coverage["by_service"]:
+                f.write(f"  按服务分组:\n")
+                for svc, info in tag_coverage["by_service"].items():
+                    f.write(f"    - {svc}: {info['count']} 条 / ¥{info['cost']:,.2f} / {info['group_percentage']:.1f}%\n")
+            f.write("\n")
 
         summary_json = os.path.join(self.output_dir, f"report-{current_month}.json")
         with open(summary_json, "w", encoding="utf-8") as f:
@@ -261,6 +388,8 @@ class ReportGenerator:
                 "cost_centers": cur_summary,
                 "top_growth": top_growth,
                 "allocations": alloc_details,
+                "alerts": alerts,
+                "tag_coverage": tag_coverage,
             }, f, ensure_ascii=False, indent=2, default=lambda x: str(x) if x == float("inf") else x)
 
         print(f"      → 生成文件:")
@@ -269,5 +398,6 @@ class ReportGenerator:
         print(f"         - allocations-{current_month}.csv")
         if top_growth:
             print(f"         - top-growth-{current_month}.csv")
+        print(f"         - tag-coverage-{current_month}.csv")
         print(f"         - report-{current_month}.txt")
         print(f"         - report-{current_month}.json")
