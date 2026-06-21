@@ -34,15 +34,23 @@ def cmd_scan(args):
     drifts_by_domain = {}
 
     for domain in all_domains:
-        expected = baseline.zones[domain]
-        record_types = list(expected.keys())
-        if not record_types:
-            continue
+        try:
+            expected = baseline.zones[domain]
+            record_types = list(expected.keys())
+            if not record_types:
+                continue
 
-        actual = detector.probe(domain, record_types)
-        drifts = DiffEngine.compare(expected, actual)
-        if drifts:
-            drifts_by_domain[domain] = drifts
+            actual = detector.probe(domain, record_types)
+            drifts = DiffEngine.compare(expected, actual)
+            if drifts:
+                drifts_by_domain[domain] = drifts
+        except Exception as exc:
+            print(
+                f"[WARN] 扫描域名 {domain} 时发生异常: "
+                f"{type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
+            continue
 
     scan_time = datetime.now()
     state_mgr = StateManager(args.state)

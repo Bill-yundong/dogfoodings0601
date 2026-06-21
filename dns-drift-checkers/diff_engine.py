@@ -81,15 +81,20 @@ def _make_drift(drift_type, record_type, expected, actual, detail=None):
 
 
 def drift_key(domain, drift):
-    expected_str = drift.get("expected")
-    if expected_str is None:
-        expected_str = ""
-    elif isinstance(expected_str, list):
-        expected_str = ",".join(str(v) for v in expected_str)
-    else:
-        expected_str = str(expected_str)
-
+    drift_type = drift["drift_type"]
+    expected = drift.get("expected")
     actual = drift.get("actual")
+
+    if isinstance(expected, list):
+        expected_str = ",".join(str(v) for v in expected)
+    elif expected is None:
+        expected_str = ""
+    else:
+        expected_str = str(expected)
+
+    if drift_type in (DRIFT_TAMPERED, DRIFT_MISSING):
+        return f"{domain}|{drift['record_type']}|{drift_type}|{expected_str}"
+
     if actual is None:
         actual_str = ""
     elif isinstance(actual, list):
@@ -97,4 +102,4 @@ def drift_key(domain, drift):
     else:
         actual_str = str(actual)
 
-    return f"{domain}|{drift['record_type']}|{drift['drift_type']}|{expected_str}|{actual_str}"
+    return f"{domain}|{drift['record_type']}|{drift_type}|{actual_str}"

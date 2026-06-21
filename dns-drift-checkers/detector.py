@@ -150,6 +150,9 @@ class RawDNSClient:
             rdata = data[offset:offset + rdlength]
             offset += rdlength
 
+            if rtype != qtype:
+                continue
+
             if rtype == TYPE_A and rdlength == 4:
                 ip = ".".join(str(b) for b in rdata)
                 answers.append({"name": name, "value": ip, "ttl": ttl})
@@ -185,6 +188,12 @@ class DNSDetector:
             except DNSTimeout:
                 result[rtype_upper] = {
                     "error": "timeout",
+                    "records": [],
+                }
+                continue
+            except Exception as exc:
+                result[rtype_upper] = {
+                    "error": f"error: {type(exc).__name__}: {exc}",
                     "records": [],
                 }
                 continue
