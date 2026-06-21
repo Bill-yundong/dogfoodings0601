@@ -1,0 +1,30 @@
+output:
+  base_dir: ./processed-images
+
+variants:
+  thumbnail:
+    width: 150
+    height: 150
+    quality: 80
+    crop: center
+  medium:
+    width: 800
+    height: 600
+    quality: 85
+    crop: center
+  large:
+    width: 1920
+    height: 1080
+    quality: 90
+    crop: center
+
+database:
+  path: ./asset_manifest.db
+
+supported_formats:
+  - .jpg
+  - .jpeg
+  - .png
+  - .bmp
+  - .tiff
+  - .webp
