@@ -1,0 +1,77 @@
+{
+  "last_scan": "2026-06-22T00:15:51.473337",
+  "drifts": {
+    "example.com|A|tampered|93.184.216.34|104.20.23.154,172.66.147.243": {
+      "domain": "example.com",
+      "drift_type": "tampered",
+      "record_type": "A",
+      "expected": "93.184.216.34",
+      "actual": [
+        "104.20.23.154",
+        "172.66.147.243"
+      ],
+      "detail": null,
+      "first_seen": "2026-06-22T00:15:33.664315",
+      "last_seen": "2026-06-22T00:15:51.473337",
+      "consecutive_days": 1
+    },
+    "example.org|A|tampered|93.184.216.34|104.20.26.136,172.66.157.237": {
+      "domain": "example.org",
+      "drift_type": "tampered",
+      "record_type": "A",
+      "expected": "93.184.216.34",
+      "actual": [
+        "104.20.26.136",
+        "172.66.157.237"
+      ],
+      "detail": null,
+      "first_seen": "2026-06-22T00:15:33.664315",
+      "last_seen": "2026-06-22T00:15:51.473337",
+      "consecutive_days": 1
+    },
+    "github.com|A|tampered|20.205.243.166|140.82.113.3": {
+      "domain": "github.com",
+      "drift_type": "tampered",
+      "record_type": "A",
+      "expected": "20.205.243.166",
+      "actual": [
+        "140.82.113.3"
+      ],
+      "detail": null,
+      "first_seen": "2026-06-22T00:15:51.473337",
+      "last_seen": "2026-06-22T00:15:51.473337",
+      "consecutive_days": 1
+    },
+    "google.com|A|tampered|142.250.80.46|142.250.139.100,142.250.139.101,142.250.139.102,142.250.139.113,142.250.139.138,142.250.139.139": {
+      "domain": "google.com",
+      "drift_type": "tampered",
+      "record_type": "A",
+      "expected": "142.250.80.46",
+      "actual": [
+        "142.250.139.100",
+        "142.250.139.101",
+        "142.250.139.102",
+        "142.250.139.113",
+        "142.250.139.138",
+        "142.250.139.139"
+      ],
+      "detail": null,
+      "first_seen": "2026-06-22T00:15:33.664315",
+      "last_seen": "2026-06-22T00:15:51.473337",
+      "consecutive_days": 1
+    },
+    "google.com|MX|tampered|10 smtp.gmail.com|10 smtp.google.com": {
+      "domain": "google.com",
+      "drift_type": "tampered",
+      "record_type": "MX",
+      "expected": "10 smtp.gmail.com",
+      "actual": [
+        "10 smtp.google.com"
+      ],
+      "detail": null,
+      "first_seen": "2026-06-22T00:15:33.664315",
+      "last_seen": "2026-06-22T00:15:51.473337",
+      "consecutive_days": 1
+    }
+  }
+}
