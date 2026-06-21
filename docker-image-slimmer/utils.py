@@ -24,10 +24,13 @@ def parse_dockerfile_instruction(created_by):
             return instruction, args
         return 'NOP', nop_part
 
-    if 'RUN' in created_by.upper() or '/bin/sh -c' in created_by:
+    if '/bin/sh -c' in created_by:
         cmd = created_by
         if '/bin/sh -c ' in cmd:
             cmd = cmd.split('/bin/sh -c ', 1)[1]
         return 'RUN', cmd.strip()
+
+    if created_by.upper().startswith('RUN '):
+        return 'RUN', created_by[4:].strip()
 
     return 'UNKNOWN', created_by
