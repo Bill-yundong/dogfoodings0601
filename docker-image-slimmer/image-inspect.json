@@ -1,0 +1,179 @@
+[
+  {
+    "Id": "sha256:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "RepoTags": [
+      "myapp:latest"
+    ],
+    "RepoDigests": [
+      "myapp@sha256:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+    ],
+    "Parent": "",
+    "Comment": "buildkit.dockerfile.v0",
+    "Created": "2024-01-15T10:30:00.000000000Z",
+    "Container": "",
+    "ContainerConfig": {},
+    "DockerVersion": "24.0.6",
+    "Author": "",
+    "Config": {
+      "User": "",
+      "ExposedPorts": {
+        "8080/tcp": {}
+      },
+      "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "NODE_VERSION=18.17.0",
+        "PYTHON_VERSION=3.11.4"
+      ],
+      "Cmd": [
+        "node",
+        "app.js"
+      ],
+      "Image": "",
+      "Volumes": null,
+      "WorkingDir": "/app",
+      "Entrypoint": null,
+      "OnBuild": null,
+      "Labels": {}
+    },
+    "Architecture": "amd64",
+    "Os": "linux",
+    "Size": 847235678,
+    "VirtualSize": 847235678,
+    "GraphDriver": {
+      "Data": {
+        "MergedDir": "/var/lib/docker/overlay2/abcdef/merged",
+        "UpperDir": "/var/lib/docker/overlay2/abcdef/diff",
+        "WorkDir": "/var/lib/docker/overlay2/abcdef/work"
+      },
+      "Name": "overlay2"
+    },
+    "RootFS": {
+      "Type": "layers",
+      "Layers": [
+        "sha256:layer00_base_image",
+        "sha256:layer01_apt_update",
+        "sha256:layer02_apt_install_build_tools",
+        "sha256:layer03_node_install",
+        "sha256:layer04_pip_dependencies",
+        "sha256:layer05_copy_source_v1",
+        "sha256:layer06_copy_source_v2",
+        "sha256:layer07_copy_config",
+        "sha256:layer08_npm_install_dev",
+        "sha256:layer09_npm_build",
+        "sha256:layer10_chown_app",
+        "sha256:layer11_apt_cache_leftover",
+        "sha256:layer12_debug_tools"
+      ]
+    },
+    "Metadata": {
+      "LastTagTime": "2024-01-15T10:30:00.000000000Z"
+    },
+    "History": [
+      {
+        "created": "2024-01-01T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c #(nop) ADD file:debian-base in /",
+        "comment": "",
+        "empty_layer": false,
+        "size": 75123456
+      },
+      {
+        "created": "2024-01-02T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c apt-get update",
+        "comment": "",
+        "empty_layer": false,
+        "size": 23456789
+      },
+      {
+        "created": "2024-01-03T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c apt-get install -y build-essential gcc g++ make cmake autoconf libtool pkg-config",
+        "comment": "",
+        "empty_layer": false,
+        "size": 156789012
+      },
+      {
+        "created": "2024-01-04T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c #(nop) ENV NODE_VERSION=18.17.0",
+        "comment": "",
+        "empty_layer": true,
+        "size": 0
+      },
+      {
+        "created": "2024-01-05T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs",
+        "comment": "",
+        "empty_layer": false,
+        "size": 89123456
+      },
+      {
+        "created": "2024-01-06T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c pip install --no-cache-dir -r requirements.txt",
+        "comment": "",
+        "empty_layer": false,
+        "size": 67890123
+      },
+      {
+        "created": "2024-01-07T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c #(nop) COPY dir:source_v1 in /app",
+        "comment": "",
+        "empty_layer": false,
+        "size": 45678901
+      },
+      {
+        "created": "2024-01-08T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c #(nop) COPY dir:source_v2 in /app",
+        "comment": "",
+        "empty_layer": false,
+        "size": 56789012
+      },
+      {
+        "created": "2024-01-09T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c #(nop) COPY file:config.json in /app/config/config.json",
+        "comment": "",
+        "empty_layer": false,
+        "size": 12345
+      },
+      {
+        "created": "2024-01-10T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c npm install",
+        "comment": "",
+        "empty_layer": false,
+        "size": 234567890
+      },
+      {
+        "created": "2024-01-11T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c npm run build",
+        "comment": "",
+        "empty_layer": false,
+        "size": 34567890
+      },
+      {
+        "created": "2024-01-12T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c chown -R node:node /app",
+        "comment": "",
+        "empty_layer": false,
+        "size": 12345678
+      },
+      {
+        "created": "2024-01-13T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c ls /var/lib/apt/lists/ && du -sh /var/cache/apt/archives/",
+        "comment": "",
+        "empty_layer": false,
+        "size": 34567890
+      },
+      {
+        "created": "2024-01-14T00:00:00.000000000Z",
+        "created_by": "/bin/sh -c apt-get install -y vim curl wget netcat telnet strace lsof",
+        "comment": "",
+        "empty_layer": false,
+        "size": 23456789
+      },
+      {
+        "created": "2024-01-15T10:30:00.000000000Z",
+        "created_by": "/bin/sh -c #(nop)  CMD [\"node\" \"app.js\"]",
+        "comment": "",
+        "empty_layer": true,
+        "size": 0
+      }
+    ]
+  }
+]

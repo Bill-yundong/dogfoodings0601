@@ -1,0 +1,492 @@
+{
+  "image": {
+    "id": "sha256:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tags": [
+      "myapp:latest"
+    ],
+    "created": "2024-01-15T10:30:00.000000000Z",
+    "architecture": "amd64",
+    "os": "linux",
+    "total_size": 847235678,
+    "total_size_formatted": "807.99 MB"
+  },
+  "layers": {
+    "total_count": 15,
+    "non_empty_count": 13,
+    "details": [
+      {
+        "index": 0,
+        "instruction": "ADD",
+        "args": "file:debian-base in /",
+        "size": 75123456,
+        "size_formatted": "71.64 MB",
+        "created": "2024-01-01T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": [
+          "/"
+        ]
+      },
+      {
+        "index": 1,
+        "instruction": "RUN",
+        "args": "apt-get update",
+        "size": 23456789,
+        "size_formatted": "22.37 MB",
+        "created": "2024-01-02T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": []
+      },
+      {
+        "index": 2,
+        "instruction": "RUN",
+        "args": "apt-get install -y build-essential gcc g++ make cmake autoconf libtool pkg-config",
+        "size": 156789012,
+        "size_formatted": "149.53 MB",
+        "created": "2024-01-03T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": []
+      },
+      {
+        "index": 3,
+        "instruction": "ENV",
+        "args": "NODE_VERSION=18.17.0",
+        "size": 0,
+        "size_formatted": "0 B",
+        "created": "2024-01-04T00:00:00.000000000Z",
+        "empty_layer": true,
+        "paths": []
+      },
+      {
+        "index": 4,
+        "instruction": "RUN",
+        "args": "curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs",
+        "size": 89123456,
+        "size_formatted": "84.99 MB",
+        "created": "2024-01-05T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": []
+      },
+      {
+        "index": 5,
+        "instruction": "RUN",
+        "args": "pip install --no-cache-dir -r requirements.txt",
+        "size": 67890123,
+        "size_formatted": "64.75 MB",
+        "created": "2024-01-06T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": []
+      },
+      {
+        "index": 6,
+        "instruction": "COPY",
+        "args": "dir:source_v1 in /app",
+        "size": 45678901,
+        "size_formatted": "43.56 MB",
+        "created": "2024-01-07T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": [
+          "/app"
+        ]
+      },
+      {
+        "index": 7,
+        "instruction": "COPY",
+        "args": "dir:source_v2 in /app",
+        "size": 56789012,
+        "size_formatted": "54.16 MB",
+        "created": "2024-01-08T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": [
+          "/app"
+        ]
+      },
+      {
+        "index": 8,
+        "instruction": "COPY",
+        "args": "file:config.json in /app/config/config.json",
+        "size": 12345,
+        "size_formatted": "12.06 KB",
+        "created": "2024-01-09T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": [
+          "/app/config/config.json"
+        ]
+      },
+      {
+        "index": 9,
+        "instruction": "RUN",
+        "args": "npm install",
+        "size": 234567890,
+        "size_formatted": "223.70 MB",
+        "created": "2024-01-10T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": []
+      },
+      {
+        "index": 10,
+        "instruction": "RUN",
+        "args": "npm run build",
+        "size": 34567890,
+        "size_formatted": "32.97 MB",
+        "created": "2024-01-11T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": []
+      },
+      {
+        "index": 11,
+        "instruction": "RUN",
+        "args": "chown -R node:node /app",
+        "size": 12345678,
+        "size_formatted": "11.77 MB",
+        "created": "2024-01-12T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": []
+      },
+      {
+        "index": 12,
+        "instruction": "RUN",
+        "args": "ls /var/lib/apt/lists/ && du -sh /var/cache/apt/archives/",
+        "size": 34567890,
+        "size_formatted": "32.97 MB",
+        "created": "2024-01-13T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": []
+      },
+      {
+        "index": 13,
+        "instruction": "RUN",
+        "args": "apt-get install -y vim curl wget netcat telnet strace lsof",
+        "size": 23456789,
+        "size_formatted": "22.37 MB",
+        "created": "2024-01-14T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": []
+      },
+      {
+        "index": 14,
+        "instruction": "CMD",
+        "args": "[\"node\" \"app.js\"]",
+        "size": 0,
+        "size_formatted": "0 B",
+        "created": "2024-01-15T10:30:00.000000000Z",
+        "empty_layer": true,
+        "paths": []
+      }
+    ]
+  },
+  "analysis": {
+    "total_size": 854369231,
+    "total_size_formatted": "814.79 MB",
+    "non_empty_layer_count": 13,
+    "copy_layer_count": 3,
+    "add_layer_count": 1,
+    "run_layer_count": 9,
+    "copy_layers": [
+      {
+        "index": 6,
+        "instruction": "COPY",
+        "args": "dir:source_v1 in /app",
+        "size": 45678901,
+        "size_formatted": "43.56 MB",
+        "created": "2024-01-07T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": [
+          "/app"
+        ]
+      },
+      {
+        "index": 7,
+        "instruction": "COPY",
+        "args": "dir:source_v2 in /app",
+        "size": 56789012,
+        "size_formatted": "54.16 MB",
+        "created": "2024-01-08T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": [
+          "/app"
+        ]
+      },
+      {
+        "index": 8,
+        "instruction": "COPY",
+        "args": "file:config.json in /app/config/config.json",
+        "size": 12345,
+        "size_formatted": "12.06 KB",
+        "created": "2024-01-09T00:00:00.000000000Z",
+        "empty_layer": false,
+        "paths": [
+          "/app/config/config.json"
+        ]
+      }
+    ],
+    "overlapping_paths": {
+      "/app": [
+        {
+          "index": 6,
+          "instruction": "COPY",
+          "args": "dir:source_v1 in /app",
+          "size": 45678901,
+          "size_formatted": "43.56 MB",
+          "created": "2024-01-07T00:00:00.000000000Z",
+          "empty_layer": false,
+          "paths": [
+            "/app"
+          ]
+        },
+        {
+          "index": 7,
+          "instruction": "COPY",
+          "args": "dir:source_v2 in /app",
+          "size": 56789012,
+          "size_formatted": "54.16 MB",
+          "created": "2024-01-08T00:00:00.000000000Z",
+          "empty_layer": false,
+          "paths": [
+            "/app"
+          ]
+        }
+      ]
+    },
+    "overlapping_path_count": 1
+  },
+  "optimizations": {
+    "suggestions": [
+      {
+        "category": "npm_optimization",
+        "title": "npm 依赖未清理 - 建议多阶段构建",
+        "description": "检测到 npm install 安装了大量依赖，但未发现 node_modules 清理或使用多阶段构建。devDependencies 在生产环境中通常不需要，建议使用多阶段构建只保留生产依赖。",
+        "estimated_savings": 117283945,
+        "estimated_savings_formatted": "111.85 MB",
+        "severity": "high",
+        "dockerfile_suggestion": "# 优化前（全部依赖保留）\nFROM node:18\nCOPY . /app\nWORKDIR /app\nRUN npm install\nRUN npm run build\nCMD [\"node\", \"dist/server.js\"]\n\n# 优化后（多阶段构建 + 生产依赖）\nFROM node:18 AS builder\nCOPY . /app\nWORKDIR /app\nRUN npm ci\nRUN npm run build\n\nFROM node:18-slim AS final\nCOPY --from=builder /app/dist /app/dist\nCOPY --from=builder /app/package.json /app/\nWORKDIR /app\nRUN npm ci --only=production\nCMD [\"node\", \"dist/server.js\"]",
+        "affected_layers": [
+          {
+            "index": 9,
+            "instruction": "RUN",
+            "args": "npm install",
+            "size": 234567890,
+            "size_formatted": "223.70 MB",
+            "created": "2024-01-10T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": []
+          },
+          {
+            "index": 10,
+            "instruction": "RUN",
+            "args": "npm run build",
+            "size": 34567890,
+            "size_formatted": "32.97 MB",
+            "created": "2024-01-11T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": []
+          }
+        ],
+        "affected_layer_indices": [
+          9,
+          10
+        ]
+      },
+      {
+        "category": "debug_tools",
+        "title": "生产镜像包含调试/诊断工具",
+        "description": "检测到生产镜像中安装了调试/诊断工具: curl, lsof, netcat, strace, telnet, vim, wget。这些工具在生产环境中通常不需要，建议移除以减小镜像体积和攻击面。",
+        "estimated_savings": 112580245,
+        "estimated_savings_formatted": "107.36 MB",
+        "severity": "medium",
+        "dockerfile_suggestion": "# 优化前（包含调试工具）\nRUN apt-get install -y vim curl wget telnet\n\n# 优化后（移除调试工具）\n# 如需调试可临时启动调试容器附加到目标容器",
+        "affected_layers": [
+          {
+            "index": 4,
+            "instruction": "RUN",
+            "args": "curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs",
+            "size": 89123456,
+            "size_formatted": "84.99 MB",
+            "created": "2024-01-05T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": []
+          },
+          {
+            "index": 13,
+            "instruction": "RUN",
+            "args": "apt-get install -y vim curl wget netcat telnet strace lsof",
+            "size": 23456789,
+            "size_formatted": "22.37 MB",
+            "created": "2024-01-14T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": []
+          }
+        ],
+        "affected_layer_indices": [
+          4,
+          13
+        ]
+      },
+      {
+        "category": "build_toolchain",
+        "title": "构建工具链残留 - 建议使用多阶段构建",
+        "description": "检测到构建工具链安装，包含: autoconf, build-essential, cmake, gcc, libtool, make, pkg-config。这些工具通常只在构建阶段需要，但最终镜像中会保留，增加镜像体积。建议使用多阶段构建，在 builder 阶段编译，最终阶段只复制编译产物。",
+        "estimated_savings": 94073407,
+        "estimated_savings_formatted": "89.72 MB",
+        "severity": "high",
+        "dockerfile_suggestion": "# 优化前（单阶段构建）\nFROM base-image\nRUN apt-get update && apt-get install -y build-essential gcc\nCOPY . /app\nRUN make build\nCMD [\"/app/app\"]\n\n# 优化后（多阶段构建）\nFROM base-image AS builder\nRUN apt-get update && apt-get install -y build-essential gcc\nCOPY . /app\nRUN make build\n\nFROM base-image AS final\nCOPY --from=builder /app/app /app/app\nCMD [\"/app/app\"]",
+        "affected_layers": [
+          {
+            "index": 2,
+            "instruction": "RUN",
+            "args": "apt-get install -y build-essential gcc g++ make cmake autoconf libtool pkg-config",
+            "size": 156789012,
+            "size_formatted": "149.53 MB",
+            "created": "2024-01-03T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": []
+          }
+        ],
+        "affected_layer_indices": [
+          2
+        ]
+      },
+      {
+        "category": "redundant_copy",
+        "title": "多次 COPY 覆盖同一路径: /app",
+        "description": "在路径 /app 上发现 2 次 COPY 操作，前 1 次的内容被后续层覆盖，造成空间浪费。涉及的层: 6, 7",
+        "estimated_savings": 45678901,
+        "estimated_savings_formatted": "43.56 MB",
+        "severity": "high",
+        "dockerfile_suggestion": "# 优化前（分层 COPY）\nCOPY source1 /app\nCOPY source2 /app\n\n# 优化后（合并为单次 COPY，或使用多阶段构建）\nCOPY combined /app\n# 或者使用多阶段构建复制最终产物",
+        "affected_layers": [
+          {
+            "index": 6,
+            "instruction": "COPY",
+            "args": "dir:source_v1 in /app",
+            "size": 45678901,
+            "size_formatted": "43.56 MB",
+            "created": "2024-01-07T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": [
+              "/app"
+            ]
+          },
+          {
+            "index": 7,
+            "instruction": "COPY",
+            "args": "dir:source_v2 in /app",
+            "size": 56789012,
+            "size_formatted": "54.16 MB",
+            "created": "2024-01-08T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": [
+              "/app"
+            ]
+          }
+        ],
+        "affected_layer_indices": [
+          6,
+          7
+        ]
+      },
+      {
+        "category": "package_cache",
+        "title": "APT 包管理器缓存未清理",
+        "description": "检测到 apt 安装操作但未发现缓存清理步骤。包管理器缓存会占用额外空间，建议在同一 RUN 指令中清理缓存。涉及 3 个安装层。",
+        "estimated_savings": 40405388,
+        "estimated_savings_formatted": "38.53 MB",
+        "severity": "medium",
+        "dockerfile_suggestion": "# 优化前（未清理缓存）\nRUN apt-get update && \\\n    apt-get install -y package1 package2\n\n# 优化后（清理缓存）\nRUN apt-get update && \\\n    apt-get install -y package1 package2 && \\\n    rm -rf /var/lib/apt/lists/* && \\\n    apt-get clean",
+        "affected_layers": [
+          {
+            "index": 2,
+            "instruction": "RUN",
+            "args": "apt-get install -y build-essential gcc g++ make cmake autoconf libtool pkg-config",
+            "size": 156789012,
+            "size_formatted": "149.53 MB",
+            "created": "2024-01-03T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": []
+          },
+          {
+            "index": 4,
+            "instruction": "RUN",
+            "args": "curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs",
+            "size": 89123456,
+            "size_formatted": "84.99 MB",
+            "created": "2024-01-05T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": []
+          },
+          {
+            "index": 13,
+            "instruction": "RUN",
+            "args": "apt-get install -y vim curl wget netcat telnet strace lsof",
+            "size": 23456789,
+            "size_formatted": "22.37 MB",
+            "created": "2024-01-14T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": []
+          }
+        ],
+        "affected_layer_indices": [
+          2,
+          4,
+          13
+        ]
+      },
+      {
+        "category": "chown_optimization",
+        "title": "chown -R 产生额外层 - 建议使用 COPY --chown",
+        "description": "检测到使用 chown -R 修改文件权限的独立层。chown -R 会复制所有文件并产生与原文件同样大小的新层，造成空间翻倍。建议在 COPY 时直接使用 --chown 参数避免额外层。",
+        "estimated_savings": 12345678,
+        "estimated_savings_formatted": "11.77 MB",
+        "severity": "high",
+        "dockerfile_suggestion": "# 优化前（chown 产生额外层）\nCOPY . /app\nRUN chown -R node:node /app\n\n# 优化后（使用 COPY --chown）\nCOPY --chown=node:node . /app",
+        "affected_layers": [
+          {
+            "index": 11,
+            "instruction": "RUN",
+            "args": "chown -R node:node /app",
+            "size": 12345678,
+            "size_formatted": "11.77 MB",
+            "created": "2024-01-12T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": []
+          }
+        ],
+        "affected_layer_indices": [
+          11
+        ]
+      },
+      {
+        "category": "package_cache",
+        "title": "NPM 包管理器缓存未清理",
+        "description": "检测到 npm 安装操作但未发现缓存清理步骤。包管理器缓存会占用额外空间，建议在同一 RUN 指令中清理缓存。涉及 1 个安装层。",
+        "estimated_savings": 11728394,
+        "estimated_savings_formatted": "11.19 MB",
+        "severity": "medium",
+        "dockerfile_suggestion": "# 优化前（有缓存）\nRUN npm install\n\n# 优化后（清理缓存）\nRUN npm install && npm cache clean --force",
+        "affected_layers": [
+          {
+            "index": 9,
+            "instruction": "RUN",
+            "args": "npm install",
+            "size": 234567890,
+            "size_formatted": "223.70 MB",
+            "created": "2024-01-10T00:00:00.000000000Z",
+            "empty_layer": false,
+            "paths": []
+          }
+        ],
+        "affected_layer_indices": [
+          9
+        ]
+      }
+    ],
+    "suggestion_count": 7,
+    "total_estimated_savings": 434095958,
+    "total_estimated_savings_formatted": "413.99 MB"
+  },
+  "summary": {
+    "total_suggestions": 7,
+    "total_estimated_savings": 434095958,
+    "total_estimated_savings_formatted": "413.99 MB",
+    "savings_percent": 51.236741944665845
+  }
+}
