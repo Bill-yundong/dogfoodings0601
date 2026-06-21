@@ -242,6 +242,22 @@ def detect_build_toolchain(layers):
     return suggestions
 
 
+def _extract_installed_packages(run_command):
+    install_pattern = re.compile(
+        r'(?:apt-get|apt|yum|dnf)\s+install\s+(?:-\S+\s+)*([^\n;&|]+)',
+        re.IGNORECASE
+    )
+
+    packages = []
+    for match in install_pattern.finditer(run_command):
+        pkg_str = match.group(1).strip()
+        for pkg in re.split(r'\s+', pkg_str):
+            pkg = pkg.strip()
+            if pkg and not pkg.startswith('-'):
+                packages.append(pkg)
+    return packages
+
+
 def detect_debug_tools(layers):
     suggestions = []
     non_empty_layers = [l for l in layers if not l.empty_layer]
@@ -254,10 +270,12 @@ def detect_debug_tools(layers):
             args = layer.args
             if 'apt-get install' in args or 'apt install' in args or \
                'yum install' in args or 'dnf install' in args:
-                matches = DEBUG_TOOLS_PATTERN.findall(args)
-                if matches:
-                    debug_layers.append(layer)
-                    debug_tools_found.update(m.lower() for m in matches)
+                installed_packages = _extract_installed_packages(args)
+                for pkg in installed_packages:
+                    if DEBUG_TOOLS_PATTERN.fullmatch(pkg):
+                        if layer not in debug_layers:
+                            debug_layers.append(layer)
+                        debug_tools_found.add(pkg.lower())
 
     if debug_layers:
         total_size = sum(l.size for l in debug_layers)

@@ -110,6 +110,14 @@ def parse_image_meta(file_path):
     return meta
 
 
+def _is_subpath(child_path, parent_path):
+    child = child_path.rstrip('/')
+    parent = parent_path.rstrip('/')
+    if child == parent:
+        return True
+    return child.startswith(parent + '/')
+
+
 def analyze_layer_relationships(layers):
     non_empty_layers = [l for l in layers if not l.empty_layer]
     total_size = sum(l.size for l in non_empty_layers)
@@ -126,17 +134,55 @@ def analyze_layer_relationships(layers):
         elif layer.instruction == 'RUN':
             run_layers.append(layer)
 
-    path_coverage = {}
+    path_layers = []
     for layer in non_empty_layers:
         for path in layer.paths:
-            if path not in path_coverage:
-                path_coverage[path] = []
-            path_coverage[path].append(layer)
+            path_layers.append((path, layer))
+
+    path_coverage = {}
+    for path, layer in path_layers:
+        if path not in path_coverage:
+            path_coverage[path] = []
+        path_coverage[path].append(layer)
 
     overlapping_paths = {}
+
     for path, layer_list in path_coverage.items():
         if len(layer_list) > 1:
-            overlapping_paths[path] = layer_list
+            if path not in overlapping_paths:
+                overlapping_paths[path] = []
+            for l in layer_list:
+                if l not in overlapping_paths[path]:
+                    overlapping_paths[path].append(l)
+
+    for i, (path1, layer1) in enumerate(path_layers):
+        for j, (path2, layer2) in enumerate(path_layers):
+            if i >= j:
+                continue
+            if layer1.index == layer2.index:
+                continue
+
+            path1_is_parent = _is_subpath(path2, path1)
+            path2_is_parent = _is_subpath(path1, path2)
+
+            if path1_is_parent or path2_is_parent:
+                if path1_is_parent:
+                    parent_path = path1
+                    child_path = path2
+                else:
+                    parent_path = path2
+                    child_path = path1
+
+                older_layer = layer1 if layer1.index < layer2.index else layer2
+                newer_layer = layer2 if layer1.index < layer2.index else layer1
+
+                key = f'{parent_path} (覆盖子路径 {child_path})'
+                if key not in overlapping_paths:
+                    overlapping_paths[key] = []
+                if older_layer not in overlapping_paths[key]:
+                    overlapping_paths[key].append(older_layer)
+                if newer_layer not in overlapping_paths[key]:
+                    overlapping_paths[key].append(newer_layer)
 
     return {
         'total_size': total_size,

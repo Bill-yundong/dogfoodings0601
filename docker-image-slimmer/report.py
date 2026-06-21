@@ -109,12 +109,14 @@ def _generate_optimization_summary(detection_result, total_size):
 
     total_savings = detection_result['total_estimated_savings']
     savings_percent = (total_savings / total_size * 100) if total_size > 0 else 0
-    compressed_ratio = ((total_size - total_savings) / total_size) if total_size > 0 else 1
+    optimized_size = total_size - total_savings
+    compression_ratio = (total_size / optimized_size) if optimized_size > 0 else 1
+    remaining_percent = (optimized_size / total_size * 100) if total_size > 0 else 0
 
     lines.append(f'  发现优化点:     {detection_result["suggestion_count"]} 个')
     lines.append(f'  预估可节省:     {format_size(total_savings)} ({savings_percent:.2f}%)')
-    lines.append(f'  优化后预估大小: {format_size(total_size - total_savings)}')
-    lines.append(f'  预估压缩比:     {compressed_ratio:.2f}x (原大小的 {compressed_ratio * 100:.1f}%)')
+    lines.append(f'  优化后预估大小: {format_size(optimized_size)}')
+    lines.append(f'  预估压缩比:     {compression_ratio:.2f}x (体积缩小为原来的 {remaining_percent:.1f}%)')
 
     category_stats = {}
     for s in detection_result['suggestions']:
