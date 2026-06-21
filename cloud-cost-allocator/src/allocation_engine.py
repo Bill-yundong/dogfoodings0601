@@ -23,11 +23,12 @@ class AllocationEngine:
             return {}
 
     def _match_cost_center_by_tags(self, tags: Dict[str, str]) -> Optional[str]:
+        tag_map = self.rules.get("tag_value_map", {})
         for key in self.cost_center_tag_keys:
             if key in tags and tags[key]:
                 value = tags[key]
-                tag_map = self.rules.get("tag_value_map", {})
-                return tag_map.get(value, value)
+                if value in tag_map:
+                    return tag_map[value]
         return None
 
     def _match_cost_center_by_name(self, resource_name: Optional[str], resource_id: Optional[str]) -> Optional[str]:
@@ -93,7 +94,7 @@ class AllocationEngine:
             tag_key = rule.get("tag_key")
             tag_values = rule.get("tag_values", [])
             rows = self.db.query(
-                "SELECT tags, cost FROM billing_records WHERE billing_month = ? AND cost_center IS NOT NULL",
+                "SELECT tags FROM billing_records WHERE billing_month = ? AND cost_center IS NOT NULL",
                 (billing_month,),
             )
             for row in rows:
@@ -102,7 +103,7 @@ class AllocationEngine:
                     val = tags[tag_key]
                     if tag_values and val not in tag_values:
                         continue
-                    weights[val] = weights.get(val, 0.0) + (row["cost"] or 0.0)
+                    weights[val] = weights.get(val, 0.0) + 1.0
 
         elif weight_type == "resource_count":
             target_ccs = rule.get("target_cost_centers", [])
@@ -175,10 +176,12 @@ class AllocationEngine:
     def run_allocations(self, billing_month: str) -> None:
         total_allocated = 0.0
         rule_count = 0
+        allocated_ids: set = set()
 
         for rule in self.shared_allocations:
             rule_name = rule.get("name", f"rule-{rule_count}")
             sources = self._collect_shared_sources(rule, billing_month)
+            sources = [(sid, scc, sc) for sid, scc, sc in sources if sid not in allocated_ids]
             if not sources:
                 continue
 
@@ -203,6 +206,7 @@ class AllocationEngine:
                         rule_name,
                     ))
                     total_allocated += allocated
+                allocated_ids.add(src_id)
 
             if alloc_records:
                 self.db.executemany(
