@@ -1,0 +1,251 @@
+========================================
+跨时区会议时间协调工具
+========================================
+
+[1/4] 加载参会者配置: team.json
+  已加载 4 位参会者:
+
+  • 张伟 (Asia/Shanghai)
+    工作时间: 09:00 - 18:00
+    午休: 12:00 - 13:30
+  • John Smith (America/Los_Angeles)
+    工作时间: 09:00 - 17:00
+    午休: 12:00 - 13:00
+  • Maria Mueller (Europe/Berlin)
+    工作时间: 08:30 - 17:30
+    午休: 12:30 - 13:30
+  • Raj Patel (Asia/Kolkata)
+    工作时间: 10:00 - 19:00
+    午休: 13:00 - 14:00
+
+[2/4] 加载日历文件: ./cals/
+  • John Smith: 102 个日程
+  • Maria Mueller: 102 个日程
+  • Raj Patel: 102 个日程
+  • 张伟: 201 个日程
+  共加载 507 个日程
+
+[3/4] 搜索可用时段 (未来 14 天, 会议时长 1小时)
+  搜索范围: 2026-06-21 01:00 UTC - 2026-07-05 01:00 UTC
+  找到 3 个候选时段
+
+[4/4] 检测日程冲突
+  检测到 6 个冲突
+
+{
+  "generatedAt": "2026-06-21T01:12:41.703Z",
+  "totalAttendees": 4,
+  "attendees": [
+    {
+      "name": "张伟",
+      "email": "zhangwei@example.com",
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "John Smith",
+      "email": "john.smith@example.com",
+      "timezone": "America/Los_Angeles"
+    },
+    {
+      "name": "Maria Mueller",
+      "email": "maria.mueller@example.com",
+      "timezone": "Europe/Berlin"
+    },
+    {
+      "name": "Raj Patel",
+      "email": "raj.patel@example.com",
+      "timezone": "Asia/Kolkata"
+    }
+  ],
+  "recommendations": [
+    {
+      "rank": 1,
+      "utcStart": "2026-06-22T08:30:00.000Z",
+      "utcEnd": "2026-06-22T09:30:00.000Z",
+      "durationMinutes": 60,
+      "weight": 55,
+      "workingHoursCount": 3,
+      "workingHoursPercent": 75,
+      "availability": [
+        {
+          "attendee": "张伟",
+          "timezone": "Asia/Shanghai",
+          "localStartTime": "2026-06-22 16:30 GMT+8",
+          "localEndTime": "2026-06-22 17:30 GMT+8",
+          "isInWorkingHours": true,
+          "isDuringLunch": false
+        },
+        {
+          "attendee": "John Smith",
+          "timezone": "America/Los_Angeles",
+          "localStartTime": "2026-06-22 01:30 PDT",
+          "localEndTime": "2026-06-22 02:30 PDT",
+          "isInWorkingHours": false,
+          "isDuringLunch": false
+        },
+        {
+          "attendee": "Maria Mueller",
+          "timezone": "Europe/Berlin",
+          "localStartTime": "2026-06-22 10:30 GMT+2",
+          "localEndTime": "2026-06-22 11:30 GMT+2",
+          "isInWorkingHours": true,
+          "isDuringLunch": false
+        },
+        {
+          "attendee": "Raj Patel",
+          "timezone": "Asia/Kolkata",
+          "localStartTime": "2026-06-22 14:00 GMT+5:30",
+          "localEndTime": "2026-06-22 15:00 GMT+5:30",
+          "isInWorkingHours": true,
+          "isDuringLunch": false
+        }
+      ],
+      "conflicts": [
+        {
+          "attendeeName": "John Smith",
+          "eventSummary": "Daily Standup",
+          "eventStart": "2026-06-22T09:00:00.000Z",
+          "eventEnd": "2026-06-22T09:30:00.000Z",
+          "overlapMinutes": 30
+        },
+        {
+          "attendeeName": "Maria Mueller",
+          "eventSummary": "Morning Sync",
+          "eventStart": "2026-06-22T09:00:00.000Z",
+          "eventEnd": "2026-06-22T09:45:00.000Z",
+          "overlapMinutes": 30
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "utcStart": "2026-06-23T08:30:00.000Z",
+      "utcEnd": "2026-06-23T09:30:00.000Z",
+      "durationMinutes": 60,
+      "weight": 55,
+      "workingHoursCount": 3,
+      "workingHoursPercent": 75,
+      "availability": [
+        {
+          "attendee": "张伟",
+          "timezone": "Asia/Shanghai",
+          "localStartTime": "2026-06-23 16:30 GMT+8",
+          "localEndTime": "2026-06-23 17:30 GMT+8",
+          "isInWorkingHours": true,
+          "isDuringLunch": false
+        },
+        {
+          "attendee": "John Smith",
+          "timezone": "America/Los_Angeles",
+          "localStartTime": "2026-06-23 01:30 PDT",
+          "localEndTime": "2026-06-23 02:30 PDT",
+          "isInWorkingHours": false,
+          "isDuringLunch": false
+        },
+        {
+          "attendee": "Maria Mueller",
+          "timezone": "Europe/Berlin",
+          "localStartTime": "2026-06-23 10:30 GMT+2",
+          "localEndTime": "2026-06-23 11:30 GMT+2",
+          "isInWorkingHours": true,
+          "isDuringLunch": false
+        },
+        {
+          "attendee": "Raj Patel",
+          "timezone": "Asia/Kolkata",
+          "localStartTime": "2026-06-23 14:00 GMT+5:30",
+          "localEndTime": "2026-06-23 15:00 GMT+5:30",
+          "isInWorkingHours": true,
+          "isDuringLunch": false
+        }
+      ],
+      "conflicts": [
+        {
+          "attendeeName": "John Smith",
+          "eventSummary": "Daily Standup",
+          "eventStart": "2026-06-23T09:00:00.000Z",
+          "eventEnd": "2026-06-23T09:30:00.000Z",
+          "overlapMinutes": 30
+        },
+        {
+          "attendeeName": "Maria Mueller",
+          "eventSummary": "Morning Sync",
+          "eventStart": "2026-06-23T09:00:00.000Z",
+          "eventEnd": "2026-06-23T09:45:00.000Z",
+          "overlapMinutes": 30
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "utcStart": "2026-06-24T08:30:00.000Z",
+      "utcEnd": "2026-06-24T09:30:00.000Z",
+      "durationMinutes": 60,
+      "weight": 55,
+      "workingHoursCount": 3,
+      "workingHoursPercent": 75,
+      "availability": [
+        {
+          "attendee": "张伟",
+          "timezone": "Asia/Shanghai",
+          "localStartTime": "2026-06-24 16:30 GMT+8",
+          "localEndTime": "2026-06-24 17:30 GMT+8",
+          "isInWorkingHours": true,
+          "isDuringLunch": false
+        },
+        {
+          "attendee": "John Smith",
+          "timezone": "America/Los_Angeles",
+          "localStartTime": "2026-06-24 01:30 PDT",
+          "localEndTime": "2026-06-24 02:30 PDT",
+          "isInWorkingHours": false,
+          "isDuringLunch": false
+        },
+        {
+          "attendee": "Maria Mueller",
+          "timezone": "Europe/Berlin",
+          "localStartTime": "2026-06-24 10:30 GMT+2",
+          "localEndTime": "2026-06-24 11:30 GMT+2",
+          "isInWorkingHours": true,
+          "isDuringLunch": false
+        },
+        {
+          "attendee": "Raj Patel",
+          "timezone": "Asia/Kolkata",
+          "localStartTime": "2026-06-24 14:00 GMT+5:30",
+          "localEndTime": "2026-06-24 15:00 GMT+5:30",
+          "isInWorkingHours": true,
+          "isDuringLunch": false
+        }
+      ],
+      "conflicts": [
+        {
+          "attendeeName": "John Smith",
+          "eventSummary": "Daily Standup",
+          "eventStart": "2026-06-24T09:00:00.000Z",
+          "eventEnd": "2026-06-24T09:30:00.000Z",
+          "overlapMinutes": 30
+        },
+        {
+          "attendeeName": "Maria Mueller",
+          "eventSummary": "Morning Sync",
+          "eventStart": "2026-06-24T09:00:00.000Z",
+          "eventEnd": "2026-06-24T09:45:00.000Z",
+          "overlapMinutes": 30
+        }
+      ]
+    }
+  ]
+}
+========================================
+时区说明
+========================================
+
+• 夏令时 (DST) 切换已自动处理
+• 跨日期线情况已考虑 (如: 美国 vs 中国, 日期可能相差一天)
+• 所有内部计算基于 UTC 时间
+
+⚠️  注意: 以下参会者所在时区有夏令时切换:
+  • John Smith (America/Los_Angeles)
+  • Maria Mueller (Europe/Berlin)
+

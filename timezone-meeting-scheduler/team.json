@@ -1,0 +1,62 @@
+[
+  {
+    "name": "张伟",
+    "email": "zhangwei@example.com",
+    "timezone": "Asia/Shanghai",
+    "workingHours": {
+      "start": "09:00",
+      "end": "18:00"
+    },
+    "lunchBreak": {
+      "start": "12:00",
+      "end": "13:30"
+    },
+    "nonWorkingDays": [0, 6],
+    "priority": 1.5
+  },
+  {
+    "name": "John Smith",
+    "email": "john.smith@example.com",
+    "timezone": "America/Los_Angeles",
+    "workingHours": {
+      "start": "09:00",
+      "end": "17:00"
+    },
+    "lunchBreak": {
+      "start": "12:00",
+      "end": "13:00"
+    },
+    "nonWorkingDays": [0, 6],
+    "priority": 1.2
+  },
+  {
+    "name": "Maria Mueller",
+    "email": "maria.mueller@example.com",
+    "timezone": "Europe/Berlin",
+    "workingHours": {
+      "start": "08:30",
+      "end": "17:30"
+    },
+    "lunchBreak": {
+      "start": "12:30",
+      "end": "13:30"
+    },
+    "nonWorkingDays": [0, 6],
+    "priority": 1.0
+  },
+  {
+    "name": "Raj Patel",
+    "email": "raj.patel@example.com",
+    "timezone": "Asia/Kolkata",
+    "workingHours": {
+      "start": "10:00",
+      "end": "19:00"
+    },
+    "lunchBreak": {
+      "start": "13:00",
+      "end": "14:00"
+    },
+    "nonWorkingDays": [0, 6],
+    "priority": 1.0
+  }
+]

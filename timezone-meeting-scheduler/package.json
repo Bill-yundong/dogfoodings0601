@@ -1,0 +1,27 @@
+{
+  "name": "timezone-meeting-scheduler",
+  "version": "1.0.0",
+  "description": "跨时区会议时间协调与冲突检测工具",
+  "main": "dist/schedule.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node schedule.ts",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.1.3",
+    "luxon": "^3.5.0",
+    "rrule": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.4.2",
+    "@types/node": "^22.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
