@@ -21,6 +21,11 @@ def _normalize(value, record_type):
     text = str(value).strip().lower()
     if record_type in ("CNAME", "MX"):
         text = text.rstrip(".").strip()
+    if record_type == "MX":
+        parts = text.split()
+        if len(parts) >= 2:
+            text = " ".join([parts[0]] + parts[1:])
+        text = " ".join(text.split())
     return text
 
 
