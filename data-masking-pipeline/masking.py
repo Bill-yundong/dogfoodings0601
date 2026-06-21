@@ -123,8 +123,14 @@ class MaskingEngine:
             self._copy_schema(src, tgt)
 
             sensitive = scan.by_table()
-            for table, fields in sensitive.items():
-                self._process_table(src, tgt, table, fields)
+            all_tables = [
+                r[0] for r in src.execute(
+                    "SELECT name FROM sqlite_master "
+                    "WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+                ).fetchall()
+            ]
+            for table in all_tables:
+                self._process_table(src, tgt, table, sensitive.get(table, []))
 
             tgt.commit()
         finally:

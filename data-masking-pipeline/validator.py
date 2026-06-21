@@ -122,9 +122,12 @@ class Validator:
         while True:
             s = src_cur.fetchmany(500)
             t = tgt_cur.fetchmany(500)
-            if not s:
+            if not s and not t:
                 break
-            for a, b in zip(s, t):
+            max_len = max(len(s), len(t))
+            for i in range(max_len):
+                a = s[i] if i < len(s) else None
+                b = t[i] if i < len(t) else None
                 if a != b:
                     mismatches += 1
         return mismatches
