@@ -1,0 +1,32 @@
+{
+  "name": "license-compliance-scanner",
+  "version": "1.0.0",
+  "description": "Open source license compliance scanner for Node.js, Python, and Go projects",
+  "main": "dist/scan.js",
+  "bin": {
+    "license-scan": "dist/scan.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "scan": "ts-node scan.ts",
+    "start": "ts-node scan.ts"
+  },
+  "keywords": [
+    "license",
+    "compliance",
+    "scanner",
+    "spdx",
+    "open-source"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0",
+    "ts-node": "^10.9.2"
+  }
+}
