@@ -14,7 +14,7 @@ interface PackageJson {
   peerDependencies?: Record<string, string>;
 }
 
-export function parsePackageJson(projectPath: string): ParserResult {
+export function parsePackageJson(projectPath: string, includeDev: boolean = true): ParserResult {
   const packageJsonPath = path.join(projectPath, 'package.json');
   const nodeModulesPath = path.join(projectPath, 'node_modules');
 
@@ -31,7 +31,7 @@ export function parsePackageJson(projectPath: string): ParserResult {
 
   const allDeps: Record<string, string> = {
     ...(pkg.dependencies || {}),
-    ...(pkg.devDependencies || {}),
+    ...(includeDev ? pkg.devDependencies : {}),
     ...(pkg.peerDependencies || {}),
   };
 

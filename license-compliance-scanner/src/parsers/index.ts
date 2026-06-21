@@ -11,11 +11,11 @@ export interface MultiParserResult {
   rootDependencies: DependencyNode[];
 }
 
-export function parseProject(projectPath: string): MultiParserResult {
+export function parseProject(projectPath: string, includeDev: boolean = true): MultiParserResult {
   const parsers: ParserResult[] = [];
 
   if (fs.existsSync(path.join(projectPath, 'package.json'))) {
-    parsers.push(parsePackageJson(projectPath));
+    parsers.push(parsePackageJson(projectPath, includeDev));
   }
 
   if (fs.existsSync(path.join(projectPath, 'requirements.txt')) ||

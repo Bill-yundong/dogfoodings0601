@@ -31,8 +31,41 @@ export function detectConflicts(
       if (seenPairs.has(pairKey)) continue;
       seenPairs.add(pairKey);
 
-      const rule = checkCompatibility(licenseA, licenseB);
-      if (!rule || rule.compatible) continue;
+      const ruleAB = checkCompatibility(licenseA, licenseB);
+      const ruleBA = checkCompatibility(licenseB, licenseA);
+
+      let effectiveRule = ruleAB;
+
+      if (ruleAB && ruleBA) {
+        const bothIncompatible = !ruleAB.compatible || !ruleBA.compatible;
+        if (!bothIncompatible) continue;
+
+        let finalRule = ruleAB;
+
+        if (compareRiskLevels(ruleBA.riskLevel, ruleAB.riskLevel) < 0) {
+          finalRule = {
+            ...ruleBA,
+            licenseA: licenseA,
+            licenseB: licenseB,
+          };
+        }
+
+        if (!ruleAB.compatible && !ruleBA.compatible) {
+          if (ruleAB.description !== ruleBA.description) {
+            finalRule = {
+              licenseA: licenseA,
+              licenseB: licenseB,
+              compatible: finalRule.compatible,
+              riskLevel: finalRule.riskLevel,
+              description: `${ruleAB.description}；${ruleBA.description}`,
+            };
+          }
+        }
+
+        effectiveRule = finalRule;
+      }
+
+      if (!effectiveRule || effectiveRule.compatible) continue;
 
       const packagesWithA = allDependencies
         .filter(d => d.spdxLicense === licenseA)
@@ -52,9 +85,9 @@ export function detectConflicts(
 
       const conflict: LicenseConflict = {
         id: `conflict-${licenseA}-${licenseB}`.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
-        riskLevel: rule.riskLevel,
+        riskLevel: effectiveRule.riskLevel,
         title: `许可证冲突: ${licenseA} vs ${licenseB}`,
-        description: rule.description,
+        description: effectiveRule.description,
         affectedPackages,
         dependencyChains,
         licenseA,

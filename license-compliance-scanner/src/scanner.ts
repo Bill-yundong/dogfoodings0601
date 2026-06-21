@@ -1,7 +1,8 @@
 import * as path from 'path';
 import { parseProject } from './parsers';
 import { detectConflicts } from './rules/rule-engine';
-import { ScanResult } from './types';
+import { ScanResult, RiskLevel } from './types';
+import { RISK_LEVEL_ORDER } from './license-matrix';
 
 export interface ScanOptions {
   projectPath: string;
@@ -11,10 +12,15 @@ export interface ScanOptions {
 
 export function scanProject(options: ScanOptions): ScanResult {
   const projectPath = path.resolve(options.projectPath);
+  const includeDev = options.includeDev !== false;
+  const minRiskLevel: RiskLevel = options.minRiskLevel || 'info';
 
-  const { allDependencies, rootDependencies } = parseProject(projectPath);
+  const { allDependencies, rootDependencies } = parseProject(projectPath, includeDev);
 
-  const conflicts = detectConflicts(allDependencies, rootDependencies);
+  let conflicts = detectConflicts(allDependencies, rootDependencies);
+
+  const minOrder = RISK_LEVEL_ORDER[minRiskLevel];
+  conflicts = conflicts.filter(c => RISK_LEVEL_ORDER[c.riskLevel] <= minOrder);
 
   const uniqueLicenses = [...new Set(allDependencies.map(d => d.spdxLicense))]
     .sort();
