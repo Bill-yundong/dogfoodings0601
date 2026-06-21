@@ -216,10 +216,8 @@ function printTimezoneNotes(attendees: Attendee[]) {
     console.log('');
   }
 
-  const maxOffsetDiff = Math.max(
-    ...attendees.map(a => DateTime.now().setZone(a.timezone).offset),
-    ...attendees.map(a => -DateTime.now().setZone(a.timezone).offset)
-  );
+  const offsets = attendees.map(a => DateTime.now().setZone(a.timezone).offset);
+  const maxOffsetDiff = Math.max(...offsets) - Math.min(...offsets);
 
   if (maxOffsetDiff >= 720) {
     console.log('🌐 提示: 团队跨时区较大, 建议注意以下情况:');

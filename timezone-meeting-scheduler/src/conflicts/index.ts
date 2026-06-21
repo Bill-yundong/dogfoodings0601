@@ -158,7 +158,7 @@ function parseICalLine(line: string): { key: string; value: string; params: Map<
 function parseICalDate(value: string, timezone: string): Date {
   if (value.length === 8) {
     const year = parseInt(value.substring(0, 4));
-    const month = parseInt(value.substring(4, 6)) - 1;
+    const month = parseInt(value.substring(4, 6));
     const day = parseInt(value.substring(6, 8));
     return DateTime.fromObject({ year, month, day }, { zone: timezone }).toUTC().toJSDate();
   }
@@ -179,7 +179,7 @@ function parseICalDate(value: string, timezone: string): Date {
       return DateTime.fromObject(
         {
           year: parseInt(year),
-          month: parseInt(month) - 1,
+          month: parseInt(month),
           day: parseInt(day),
           hour: parseInt(hour),
           minute: parseInt(minute),

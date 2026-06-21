@@ -98,8 +98,9 @@ function deduplicateSlots(
   const seenSlots = new Set<string>();
 
   for (const slot of slots) {
-    const startOfDay = DateTime.fromJSDate(slot.start).startOf('day').toISO();
-    const timeKey = `${startOfDay}-${slot.start.getHours()}-${slot.start.getMinutes()}`;
+    const utcStart = DateTime.fromJSDate(slot.start).toUTC();
+    const startOfDay = utcStart.startOf('day').toISO();
+    const timeKey = `${startOfDay}-${utcStart.hour}-${utcStart.minute}`;
 
     if (!seenSlots.has(timeKey)) {
       const isRedundant = uniqueSlots.some(existing => {
