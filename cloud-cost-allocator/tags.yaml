@@ -1,0 +1,59 @@
+default_cost_center: "Unallocated"
+
+cost_center_tags:
+  - "CostCenter"
+  - "cost_center"
+  - "Team"
+  - "team"
+
+tag_value_map:
+  "team-order": "订单中心"
+  "team-payment": "支付团队"
+  "team-user": "用户中心"
+  "team-infra": "基础设施"
+  "team-data": "数据平台"
+
+naming_rules:
+  - pattern: "^order-"
+    cost_center: "订单中心"
+  - pattern: "^pay-"
+    cost_center: "支付团队"
+  - pattern: "^user-"
+    cost_center: "用户中心"
+  - pattern: "^infra-"
+    cost_center: "基础设施"
+  - pattern: "^data-"
+    cost_center: "数据平台"
+  - pattern: "^common-gateway"
+    cost_center: "共享服务"
+  - pattern: "^shared-"
+    cost_center: "共享服务"
+
+shared_allocations:
+  - name: "公共网关流量费按调用量分摊"
+    source_resource_pattern: "^common-gateway"
+    weight_by: "usage"
+    usage_service: "ecs"
+    target_cost_centers:
+      - "订单中心"
+      - "支付团队"
+      - "用户中心"
+      - "数据平台"
+
+  - name: "共享服务按资源数量均分"
+    source_cost_center: "共享服务"
+    weight_by: "resource_count"
+    target_cost_centers:
+      - "订单中心"
+      - "支付团队"
+      - "用户中心"
+      - "数据平台"
+
+  - name: "基础设施团队费用按固定比例分摊"
+    source_cost_center: "基础设施"
+    weight_by: "fixed"
+    weights:
+      "订单中心": 0.35
+      "支付团队": 0.25
+      "用户中心": 0.25
+      "数据平台": 0.15
