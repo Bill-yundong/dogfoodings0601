@@ -48,7 +48,6 @@ class ReportManager:
 
     def update_state(self, diff_results: Dict[str, Any]) -> Dict[str, Any]:
         now_iso = self._now_iso()
-        previous_last_scan = self.state.get("last_scan")
         self.state["last_scan"] = now_iso
 
         zones_state: Dict[str, Any] = self.state.setdefault("zones", {})
@@ -61,18 +60,18 @@ class ReportManager:
             zone_state["last_scan"] = now_iso
 
             if zone_data["status"] == "tampered":
-                if "first_drift_at" not in zone_state:
+                if "first_drift_at" not in zone_state or zone_state["first_drift_at"] is None:
                     zone_state["first_drift_at"] = now_iso
                 zone_state["last_drift_at"] = now_iso
 
-                if previous_last_scan:
-                    zone_state["consecutive_days"] = (
-                        zone_state.get("consecutive_days", 0) + 1
-                    )
-                else:
-                    zone_state["consecutive_days"] = 1
+                zone_state["consecutive_days"] = self._days_between(
+                    zone_state["first_drift_at"], now_iso
+                )
             else:
-                zone_state["first_drift_at"] = None
+                if "first_drift_at" in zone_state:
+                    del zone_state["first_drift_at"]
+                if "last_drift_at" in zone_state:
+                    del zone_state["last_drift_at"]
                 zone_state["consecutive_days"] = 0
 
             for rtype, rec_data in zone_data["records"].items():
@@ -92,10 +91,9 @@ class ReportManager:
                     diff_state["category"] = category
                     diff_state["value"] = value
 
-                    if previous_last_scan and "consecutive_days" in diff_state:
-                        diff_state["consecutive_days"] = diff_state["consecutive_days"] + 1
-                    else:
-                        diff_state["consecutive_days"] = 1
+                    diff_state["consecutive_days"] = self._days_between(
+                        diff_state["first_seen"], now_iso
+                    )
 
                     rec_state["diffs"][key] = diff_state
 

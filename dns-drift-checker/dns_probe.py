@@ -14,6 +14,15 @@ TYPE_NAMES = {v: k for k, v in DNS_RECORD_TYPES.items()}
 
 DNS_CLASS_IN = 1
 
+RCODE_NAMES = {
+    0: "NOERROR",
+    1: "FORMERR",
+    2: "SERVFAIL",
+    3: "NXDOMAIN",
+    4: "NOTIMP",
+    5: "REFUSED",
+}
+
 
 class DNSProbe:
     def __init__(self, resolver: str = "8.8.8.8", timeout: float = 5.0, retries: int = 2):
@@ -82,7 +91,8 @@ class DNSProbe:
 
         rcode = flags & 0x000F
         if rcode != 0:
-            return {"results": [], "status": f"rcode={rcode}"}
+            rcode_name = RCODE_NAMES.get(rcode, f"UNKNOWN({rcode})")
+            raise ValueError(f"DNS server returned error: {rcode_name} (rcode={rcode})")
 
         offset = 12
 
