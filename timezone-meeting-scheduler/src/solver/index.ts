@@ -70,7 +70,7 @@ export function findMeetingSlots(
   };
 }
 
-function calculateWeight(
+export function calculateWeight(
   availability: AttendeeAvailability[],
   totalAttendees: number
 ): number {
@@ -90,7 +90,7 @@ function calculateWeight(
   return weight + consensusBonus;
 }
 
-function deduplicateSlots(
+export function deduplicateSlots(
   slots: CandidateSlot[],
   durationMinutes: number
 ): CandidateSlot[] {
@@ -100,7 +100,7 @@ function deduplicateSlots(
   for (const slot of slots) {
     const utcStart = DateTime.fromJSDate(slot.start).toUTC();
     const startOfDay = utcStart.startOf('day').toISO();
-    const timeKey = `${startOfDay}-${utcStart.hour}-${utcStart.minute}`;
+    const timeKey = `${startOfDay}-${utcStart.hour}-${utcStart.minute}-${slot.weight}-${slot.workingHoursCount}`;
 
     if (!seenSlots.has(timeKey)) {
       const isRedundant = uniqueSlots.some(existing => {

@@ -216,23 +216,26 @@ function expandRecurringEvent(
   try {
     const tz = event.dtstartTz || defaultTimezone;
     const durationMs = event.end.getTime() - event.start.getTime();
-    const dtstartLocal = DateTime.fromJSDate(event.start).setZone(tz);
+    const dtstartUTC = DateTime.fromJSDate(event.start).toUTC();
 
-    const rruleStr = `DTSTART:${dtstartLocal.toFormat("yyyyMMdd'T'HHmmss")}\nRRULE:${event.rrule}`;
+    const rruleStr = `DTSTART:${dtstartUTC.toFormat("yyyyMMdd'T'HHmmss'Z'")}\nRRULE:${event.rrule}`;
     const rule = rrulestr(rruleStr);
 
-    const twoYearsLater = DateTime.utc().plus({ years: 2 }).toJSDate();
-    const occurrences = rule.between(new Date(), twoYearsLater, true);
+    const twoYearsLater = dtstartUTC.plus({ years: 2 }).toJSDate();
+    const occurrences = rule.between(dtstartUTC.toJSDate(), twoYearsLater, true);
 
     const exdates = parseExdates(event.exdates, tz);
-    const exdateSet = new Set(exdates.map(d => d.getTime()));
+    const exdateSet = new Set(exdates.map(d => {
+      return DateTime.fromJSDate(d).toUTC().set({ second: 0, millisecond: 0 }).toMillis();
+    }));
 
     const events: CalendarEvent[] = [];
     for (const occurrence of occurrences.slice(0, 100)) {
-      const occurrenceTime = occurrence.getTime();
-      if (!exdateSet.has(occurrenceTime)) {
-        const dtStart = DateTime.fromJSDate(occurrence).setZone(tz, { keepLocalTime: false });
-        const utcStart = dtStart.toUTC().toJSDate();
+      const occurrenceUTC = DateTime.fromJSDate(occurrence).toUTC();
+      const occurrenceKey = occurrenceUTC.set({ second: 0, millisecond: 0 }).toMillis();
+      
+      if (!exdateSet.has(occurrenceKey)) {
+        const utcStart = occurrenceUTC.toJSDate();
         const utcEnd = new Date(utcStart.getTime() + durationMs);
 
         events.push({
