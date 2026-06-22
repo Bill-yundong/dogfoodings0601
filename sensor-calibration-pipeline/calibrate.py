@@ -24,8 +24,8 @@ logger = setup_logger("calibration_pipeline")
 def run_pipeline(
     raw_csv_path: str,
     calibration_json_path: str,
-    window_size: int = 10,
-    consecutive_alerts: int = 3,
+    window_size: int = None,
+    consecutive_alerts: int = None,
     output_dir: str = "output",
 ) -> Dict:
     timestamp = generate_timestamp()
@@ -38,11 +38,25 @@ def run_pipeline(
     raw_data = collector.load()
 
     calibrator = CalibrationEngine(calibration_json_path)
+
+    effective_window_size = (
+        window_size if window_size is not None else calibrator.default_window_size
+    )
+    effective_consecutive_alerts = (
+        consecutive_alerts
+        if consecutive_alerts is not None
+        else calibrator.default_consecutive_alerts
+    )
+    logger.info(
+        f"Effective parameters: window_size={effective_window_size}, "
+        f"consecutive_alerts={effective_consecutive_alerts}"
+    )
+
     calibrated_data = calibrator.calibrate(raw_data)
 
     drift_detector = DriftDetector(
-        window_size=window_size,
-        consecutive_alerts=consecutive_alerts,
+        window_size=effective_window_size,
+        consecutive_alerts=effective_consecutive_alerts,
     )
     analyzed_data, alerts = drift_detector.detect(
         calibrated_data,
@@ -62,8 +76,8 @@ def run_pipeline(
     )
     alerts_data = {
         "pipeline_run_timestamp": timestamp,
-        "window_size": window_size,
-        "consecutive_alerts_threshold": consecutive_alerts,
+        "window_size": effective_window_size,
+        "consecutive_alerts_threshold": effective_consecutive_alerts,
         "total_records_processed": len(analyzed_data),
         "total_alerts": len(alerts),
         "alerts_summary": _generate_alerts_summary(alerts),
@@ -172,14 +186,14 @@ def main():
     run_parser.add_argument(
         "--window-size",
         type=int,
-        default=10,
-        help="Sliding window size for drift detection (default: 10)",
+        default=None,
+        help="Sliding window size for drift detection (overrides calibration.json default)",
     )
     run_parser.add_argument(
         "--consecutive-alerts",
         type=int,
-        default=3,
-        help="Consecutive out-of-tolerance readings before alert (default: 3)",
+        default=None,
+        help="Consecutive out-of-tolerance readings before alert (overrides calibration.json default)",
     )
     run_parser.add_argument(
         "--output-dir",

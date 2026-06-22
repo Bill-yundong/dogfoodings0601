@@ -10,12 +10,17 @@ logger = setup_logger(__name__)
 class CalibrationEngine:
     """Applies polynomial calibration coefficients to sensor readings."""
 
+    DEFAULT_WINDOW_SIZE = 10
+    DEFAULT_CONSECUTIVE_ALERTS = 3
+
     def __init__(self, calibration_config_path: str):
         self.config_path = calibration_config_path
         self.config: Dict = {}
         self.sensor_coefficients: Dict[str, List[float]] = {}
         self.baseline_values: Dict[str, float] = {}
         self.tolerance: Dict[str, float] = {}
+        self.default_window_size: int = self.DEFAULT_WINDOW_SIZE
+        self.default_consecutive_alerts: int = self.DEFAULT_CONSECUTIVE_ALERTS
         self._load_config()
 
     def _load_config(self) -> None:
@@ -24,6 +29,17 @@ class CalibrationEngine:
 
         if "sensors" not in self.config:
             raise ValueError("Invalid calibration config: missing 'sensors' key")
+
+        self.default_window_size = int(
+            self.config.get("default_window_size", self.DEFAULT_WINDOW_SIZE)
+        )
+        self.default_consecutive_alerts = int(
+            self.config.get("default_consecutive_alerts", self.DEFAULT_CONSECUTIVE_ALERTS)
+        )
+        logger.info(
+            f"Pipeline defaults: window_size={self.default_window_size}, "
+            f"consecutive_alerts={self.default_consecutive_alerts}"
+        )
 
         for sensor_id, sensor_config in self.config["sensors"].items():
             if "coefficients" not in sensor_config:

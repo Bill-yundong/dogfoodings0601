@@ -22,12 +22,14 @@ class DriftDetector:
         self.consecutive_alerts = consecutive_alerts
         self.sliding_windows: Dict[str, Deque[float]] = {}
         self.consecutive_count: Dict[str, int] = {}
+        self.in_alert_state: Dict[str, bool] = {}
         self.alerts: List[Dict] = []
 
     def _init_sensor_state(self, sensor_id: str) -> None:
         if sensor_id not in self.sliding_windows:
             self.sliding_windows[sensor_id] = deque(maxlen=self.window_size)
             self.consecutive_count[sensor_id] = 0
+            self.in_alert_state[sensor_id] = False
 
     def _calculate_window_mean(self, sensor_id: str) -> float:
         window = self.sliding_windows[sensor_id]
@@ -76,9 +78,13 @@ class DriftDetector:
 
             if is_out_of_tolerance:
                 self.consecutive_count[sensor_id] += 1
-                if self.consecutive_count[sensor_id] >= self.consecutive_alerts:
+                if (
+                    self.consecutive_count[sensor_id] >= self.consecutive_alerts
+                    and not self.in_alert_state[sensor_id]
+                ):
                     is_suspected_aging = True
                     alert_severity = "warning" if rel_dev < tolerance * 2 else "critical"
+                    self.in_alert_state[sensor_id] = True
                     self._record_alert(
                         row,
                         baseline,
@@ -90,6 +96,7 @@ class DriftDetector:
                     )
             else:
                 self.consecutive_count[sensor_id] = 0
+                self.in_alert_state[sensor_id] = False
 
             analyzed_row = dict(row)
             analyzed_row.update(

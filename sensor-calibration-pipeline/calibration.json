@@ -8,7 +8,8 @@
       "type": "thermocouple",
       "unit": "Celsius",
       "coefficients": [1.2, 0.985, 0.0012],
-      "baseline": 25.0,
+      "raw_baseline": 25.0,
+      "baseline": 26.575,
       "tolerance": 0.05,
       "calibration_date": "2026-01-15"
     },
@@ -17,7 +18,8 @@
       "type": "piezoresistive",
       "unit": "kPa",
       "coefficients": [0.5, 1.002, -0.00008],
-      "baseline": 100.0,
+      "raw_baseline": 100.0,
+      "baseline": 99.9,
       "tolerance": 0.03,
       "calibration_date": "2026-02-20"
     },
@@ -26,7 +28,8 @@
       "type": "turbine",
       "unit": "L/min",
       "coefficients": [-0.3, 0.995, 0.0005],
-      "baseline": 50.0,
+      "raw_baseline": 50.0,
+      "baseline": 50.7,
       "tolerance": 0.04,
       "calibration_date": "2026-03-10"
     },
@@ -35,11 +38,12 @@
       "type": "accelerometer",
       "unit": "mm/s",
       "coefficients": [0.05, 1.01, 0.0002],
-      "baseline": 2.5,
+      "raw_baseline": 2.5,
+      "baseline": 2.57625,
       "tolerance": 0.08,
       "calibration_date": "2026-04-05"
     }
   },
-  "default_window_size": 10,
-  "default_consecutive_alerts": 3
+  "default_window_size": 15,
+  "default_consecutive_alerts": 4
 }
