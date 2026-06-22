@@ -157,9 +157,14 @@ export function renderReport(report: AuditReport, useColor: boolean): string {
   const lines: string[] = [];
 
   const rule = c.dim('─'.repeat(64));
-  lines.push(c.bold('╔' + '═'.repeat(62) + '╗'));
-  lines.push(c.bold('║') + c.bold('  SITE LINK HEALTH & SEO AUDIT REPORT') + ' '.repeat(23) + c.bold('║'));
-  lines.push(c.bold('╚' + '═'.repeat(62) + '╝'));
+  const boxWidth = 62;
+  lines.push(c.bold('╔' + '═'.repeat(boxWidth) + '╗'));
+  const titleText = 'SITE LINK HEALTH & SEO AUDIT REPORT';
+  const padTotal = boxWidth - 2 - titleText.length;
+  const padL = Math.floor(padTotal / 2);
+  const padR = padTotal - padL;
+  lines.push(c.bold('║') + ' '.repeat(padL) + c.bold(titleText) + ' '.repeat(padR) + c.bold('║'));
+  lines.push(c.bold('╚' + '═'.repeat(boxWidth) + '╝'));
   lines.push(`Entry:     ${c.cyan(report.entryUrl)}`);
   lines.push(`Generated: ${report.generatedAt.replace('T', ' ').replace(/\..+/, '')}`);
   lines.push('');
@@ -322,7 +327,7 @@ function formatValue(value: string | null, c: ColorPalette): string {
 }
 
 function padNum(n: number): string {
-  return n < 10 ? ` ${n}` : String(n);
+  return String(n).padStart(4);
 }
 
 function padStr(s: string, width: number): string {

@@ -88,7 +88,23 @@ function httpRequest(
       return;
     }
 
+    const visited = new Set<string>();
+
     const run = (target: string, redirectsLeft: number): void => {
+      if (visited.has(target)) {
+        finish({
+          url: originalUrl,
+          status: null,
+          ok: false,
+          skipped: false,
+          redirected: false,
+          finalUrl: null,
+          error: `Redirect loop detected (${target})`,
+        });
+        return;
+      }
+      visited.add(target);
+
       let parsed: URL;
       try {
         parsed = new URL(target);
@@ -115,7 +131,20 @@ function httpRequest(
         },
         (res) => {
           const status = res.statusCode || 0;
-          if (REDIRECT_STATUSES.has(status) && res.headers.location && redirectsLeft > 0) {
+          if (REDIRECT_STATUSES.has(status) && res.headers.location) {
+            if (redirectsLeft <= 0) {
+              res.resume();
+              finish({
+                url: originalUrl,
+                status,
+                ok: false,
+                skipped: false,
+                redirected: true,
+                finalUrl: target,
+                error: `Too many redirects (>${MAX_REDIRECTS})`,
+              });
+              return;
+            }
             const next = new URL(res.headers.location, parsed).toString();
             res.resume();
             run(next, redirectsLeft - 1);
@@ -125,7 +154,7 @@ function httpRequest(
           finish({
             url: originalUrl,
             status,
-            ok: status >= 200 && status < 400,
+            ok: status >= 200 && status < 300,
             skipped: false,
             redirected: target !== originalUrl,
             finalUrl: target !== originalUrl ? target : null,
