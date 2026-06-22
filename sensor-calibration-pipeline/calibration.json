@@ -1,0 +1,45 @@
+{
+  "pipeline_name": "Industrial Sensor Calibration Pipeline",
+  "version": "1.0.0",
+  "calibration_date": "2026-06-01",
+  "sensors": {
+    "TEMP-001": {
+      "description": "Temperature Sensor - Production Line A",
+      "type": "thermocouple",
+      "unit": "Celsius",
+      "coefficients": [1.2, 0.985, 0.0012],
+      "baseline": 25.0,
+      "tolerance": 0.05,
+      "calibration_date": "2026-01-15"
+    },
+    "PRESS-002": {
+      "description": "Pressure Sensor - Hydraulic System",
+      "type": "piezoresistive",
+      "unit": "kPa",
+      "coefficients": [0.5, 1.002, -0.00008],
+      "baseline": 100.0,
+      "tolerance": 0.03,
+      "calibration_date": "2026-02-20"
+    },
+    "FLOW-003": {
+      "description": "Flow Sensor - Cooling Circuit",
+      "type": "turbine",
+      "unit": "L/min",
+      "coefficients": [-0.3, 0.995, 0.0005],
+      "baseline": 50.0,
+      "tolerance": 0.04,
+      "calibration_date": "2026-03-10"
+    },
+    "VIB-004": {
+      "description": "Vibration Sensor - Motor Bearing",
+      "type": "accelerometer",
+      "unit": "mm/s",
+      "coefficients": [0.05, 1.01, 0.0002],
+      "baseline": 2.5,
+      "tolerance": 0.08,
+      "calibration_date": "2026-04-05"
+    }
+  },
+  "default_window_size": 10,
+  "default_consecutive_alerts": 3
+}
