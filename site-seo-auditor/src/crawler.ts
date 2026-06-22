@@ -138,7 +138,7 @@ function determineKind(source: string, existing: string | null): LinkKind {
   return 'page';
 }
 
-function findLocalFile(target: string): string | null {
+export function findLocalFile(target: string): string | null {
   let stat: fs.Stats | null = null;
   try {
     stat = fs.statSync(target);

@@ -326,7 +326,7 @@ function formatValue(value: string | null, c: ColorPalette): string {
   return c.gray(value);
 }
 
-function padNum(n: number): string {
+export function padNum(n: number): string {
   return String(n).padStart(4);
 }
 

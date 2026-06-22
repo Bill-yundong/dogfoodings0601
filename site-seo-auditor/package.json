@@ -4,14 +4,23 @@
   "description": "Static site link health and SEO audit tool (Node.js + TypeScript)",
   "scripts": {
     "audit": "ts-node audit.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "jest --verbose"
   },
   "dependencies": {
     "cheerio": "^1.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.12",
     "@types/node": "^20.11.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": ["<rootDir>/tests/**/*.test.ts"]
   }
 }
