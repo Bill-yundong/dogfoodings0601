@@ -160,7 +160,7 @@ export function renderReport(report: AuditReport, useColor: boolean): string {
   const boxWidth = 62;
   lines.push(c.bold('╔' + '═'.repeat(boxWidth) + '╗'));
   const titleText = 'SITE LINK HEALTH & SEO AUDIT REPORT';
-  const padTotal = boxWidth - 2 - titleText.length;
+  const padTotal = boxWidth - titleText.length;
   const padL = Math.floor(padTotal / 2);
   const padR = padTotal - padL;
   lines.push(c.bold('║') + ' '.repeat(padL) + c.bold(titleText) + ' '.repeat(padR) + c.bold('║'));
